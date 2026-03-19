@@ -110,33 +110,35 @@ impl Provider for Ixdzs8Provider {
     async fn get_book_info(&self, client: &HttpClient, book_id: &str) -> Result<BookInfo> {
         let url = format!("{}/read/{}/", Self::BASE_URL, book_id);
         let info_html = self.fetch_verified_html(client, &url).await?;
-        let doc = Html::parse_document(&info_html);
 
         let mut info = BookInfo::default();
-        info.book_name = meta_content(&doc, "og:novel:book_name");
-        if info.book_name.is_empty() {
-            info.book_name = select_text(&doc, "div.n-text h1");
-        }
+        {
+            let doc = Html::parse_document(&info_html);
+            info.book_name = meta_content(&doc, "og:novel:book_name");
+            if info.book_name.is_empty() {
+                info.book_name = select_text(&doc, "div.n-text h1");
+            }
 
-        info.author = meta_content(&doc, "og:novel:author");
-        info.cover_url = meta_content(&doc, "og:image");
-        if info.cover_url.is_empty() {
-            info.cover_url = select_attr(&doc, "div.n-img img", "src");
-        }
-        info.serial_status = meta_content(&doc, "og:novel:status");
+            info.author = meta_content(&doc, "og:novel:author");
+            info.cover_url = meta_content(&doc, "og:image");
+            if info.cover_url.is_empty() {
+                info.cover_url = select_attr(&doc, "div.n-img img", "src");
+            }
+            info.serial_status = meta_content(&doc, "og:novel:status");
 
-        let iso_time = meta_content(&doc, "og:novel:update_time");
-        if !iso_time.is_empty() {
-            info.update_time = iso_time.replace('T', " ").split('+').next()
-                .unwrap_or("").trim().to_string();
-        }
+            let iso_time = meta_content(&doc, "og:novel:update_time");
+            if !iso_time.is_empty() {
+                info.update_time = iso_time.replace('T', " ").split('+').next()
+                    .unwrap_or("").trim().to_string();
+            }
 
-        info.word_count = select_text(&doc, "div.n-text span.nsize");
+            info.word_count = select_text(&doc, "div.n-text span.nsize");
 
-        let raw_summary = meta_content(&doc, "og:description");
-        if !raw_summary.is_empty() {
-            let s = raw_summary.replace("&nbsp;", "").replace("<br />", "\n");
-            info.summary = s.lines().map(|l| l.trim()).collect::<Vec<_>>().join("\n").trim().to_string();
+            let raw_summary = meta_content(&doc, "og:description");
+            if !raw_summary.is_empty() {
+                let s = raw_summary.replace("&nbsp;", "").replace("<br />", "\n");
+                info.summary = s.lines().map(|l| l.trim()).collect::<Vec<_>>().join("\n").trim().to_string();
+            }
         }
 
         // Fetch catalog via POST
