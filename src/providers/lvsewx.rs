@@ -95,17 +95,11 @@ impl Provider for LvsewxProvider {
 
         // Parse chapters from div.listmain dl
         let mut chapters = Vec::new();
-        let mut found_main = false;
 
         if let Ok(sel) = Selector::parse("div.listmain dl > *") {
             for elem in doc.select(&sel) {
                 let tag = elem.value().name();
-                if tag == "dt" {
-                    let text = element_text(&elem);
-                    if text.contains("正文卷") || text.contains("正文") {
-                        found_main = true;
-                    }
-                } else if tag == "dd" {
+                if tag == "dd" {
                     if let Ok(a_sel) = Selector::parse("a[href]") {
                         if let Some(a_elem) = elem.select(&a_sel).next() {
                             if let Some(href) = a_elem.value().attr("href") {

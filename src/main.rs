@@ -1,3 +1,5 @@
+#![allow(unused_imports, dead_code, unused_variables, unused_mut)]
+
 mod client;
 mod download;
 mod provider;

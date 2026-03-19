@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use regex::Regex;
 use once_cell::sync::Lazy;
 

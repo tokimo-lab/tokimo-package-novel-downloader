@@ -1,11 +1,12 @@
 use anyhow::Result;
 use indicatif::{ProgressBar, ProgressStyle};
+use std::io::Write;
 use std::path::Path;
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
 
-/// Download a novel and save as TXT
+/// Download a novel and save as TXT (writes incrementally)
 pub async fn download_novel(
     provider: &dyn Provider,
     client: &HttpClient,
@@ -42,17 +43,20 @@ pub async fn download_novel(
         .progress_chars("#>-"),
     );
 
-    let mut content = format!(
+    // Write incrementally to file
+    let mut file = std::fs::File::create(&output_path)?;
+    write!(
+        file,
         "《{}》\n作者：{}\n\n{}\n\n",
         book_info.book_name, book_info.author, book_info.summary
-    );
+    )?;
 
     let mut downloaded = 0;
     let mut failed = 0;
 
     for volume in &book_info.volumes {
         if !volume.volume_name.is_empty() {
-            content.push_str(&format!("\n\n{}\n\n", volume.volume_name));
+            write!(file, "\n\n{}\n\n", volume.volume_name)?;
         }
 
         for chapter_info in &volume.chapters {
@@ -61,28 +65,27 @@ pub async fn download_novel(
                 .await
             {
                 Ok(chapter) => {
-                    content.push_str(&format!("{}\n\n{}\n\n", chapter.title, chapter.content));
+                    write!(file, "{}\n\n{}\n\n", chapter.title, chapter.content)?;
                     downloaded += 1;
                 }
                 Err(e) => {
-                    content.push_str(&format!(
+                    write!(
+                        file,
                         "{}\n\n[下载失败: {}]\n\n",
                         chapter_info.title, e
-                    ));
+                    )?;
                     failed += 1;
-                    eprintln!("Failed to download {}: {}", chapter_info.title, e);
                 }
             }
             pb.inc(1);
 
             // Small delay to avoid being rate limited
-            tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
         }
     }
 
     pb.finish_with_message("Download complete");
 
-    std::fs::write(&output_path, &content)?;
     println!(
         "\nSaved to: {} ({} chapters downloaded, {} failed)",
         output_path.display(),

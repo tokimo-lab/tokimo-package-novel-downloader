@@ -24,64 +24,56 @@ impl Provider for RuochuProvider {
     }
 
     async fn get_book_info(&self, client: &HttpClient, book_id: &str) -> Result<BookInfo> {
-        // Fetch book detail page
+        // Fetch book detail page and extract info before next await
         let info_url = format!("{}/book/{}", self.base_url(), book_id);
         let html_str = client.get(&info_url).await?;
-        let doc = Html::parse_document(&html_str);
-
         let mut info = BookInfo::default();
+        {
+            let doc = Html::parse_document(&html_str);
 
-        // Book name
-        info.book_name = select_text(&doc, "div.pattern-cover-detail h1 span, div[class*='pattern-cover-detail'] h1 span");
-        if info.book_name.is_empty() {
-            info.book_name = select_text(&doc, "h1");
-        }
+            info.book_name = select_text(&doc, "div.pattern-cover-detail h1 span, div[class*='pattern-cover-detail'] h1 span");
+            if info.book_name.is_empty() {
+                info.book_name = select_text(&doc, "h1");
+            }
 
-        // Author from notify div
-        if let Ok(sel) = Selector::parse("div.notify, div[class*='notify']") {
-            if let Some(elem) = doc.select(&sel).next() {
-                let text = element_text(&elem);
-                if text.contains("作者") {
-                    // Extract author name after "作者"
-                    if let Some(pos) = text.find("作者") {
-                        let after = &text[pos + "作者".len()..];
-                        let after = after.trim_start_matches('：').trim_start_matches(':').trim();
-                        // Take until next whitespace or special char
-                        info.author = after
-                            .split_whitespace()
-                            .next()
-                            .unwrap_or(after)
-                            .to_string();
+            if let Ok(sel) = Selector::parse("div.notify, div[class*='notify']") {
+                if let Some(elem) = doc.select(&sel).next() {
+                    let text = element_text(&elem);
+                    if text.contains("作者") {
+                        if let Some(pos) = text.find("作者") {
+                            let after = &text[pos + "作者".len()..];
+                            let after = after.trim_start_matches('：').trim_start_matches(':').trim();
+                            info.author = after
+                                .split_whitespace()
+                                .next()
+                                .unwrap_or(after)
+                                .to_string();
+                        }
                     }
                 }
             }
-        }
 
-        // Cover
-        info.cover_url = select_attr(&doc, "div.pic img.book-cover, img[class*='book-cover']", "src");
-        if !info.cover_url.is_empty() && !info.cover_url.starts_with("http") {
-            info.cover_url = normalize_url(self.base_url(), &info.cover_url);
-        }
-
-        // Word count
-        info.word_count = select_text(&doc, "span.words, span[class*='words']");
-
-        // Status
-        if let Ok(sel) = Selector::parse("i.is-serialize, i[class*='is-serialize']") {
-            if doc.select(&sel).next().is_some() {
-                info.serial_status = "连载中".to_string();
-            } else {
-                info.serial_status = "完结".to_string();
+            info.cover_url = select_attr(&doc, "div.pic img.book-cover, img[class*='book-cover']", "src");
+            if !info.cover_url.is_empty() && !info.cover_url.starts_with("http") {
+                info.cover_url = normalize_url(self.base_url(), &info.cover_url);
             }
-        }
 
-        // Update time
-        info.update_time = select_text(&doc, "span.time, span[class*='time']");
+            info.word_count = select_text(&doc, "span.words, span[class*='words']");
 
-        // Summary
-        info.summary = select_text(&doc, "div.summary pre.note, div[class*='summary'] pre.note");
-        if info.summary.is_empty() {
-            info.summary = select_text(&doc, "div.summary, div[class*='summary']");
+            if let Ok(sel) = Selector::parse("i.is-serialize, i[class*='is-serialize']") {
+                if doc.select(&sel).next().is_some() {
+                    info.serial_status = "连载中".to_string();
+                } else {
+                    info.serial_status = "完结".to_string();
+                }
+            }
+
+            info.update_time = select_text(&doc, "span.time, span[class*='time']");
+
+            info.summary = select_text(&doc, "div.summary pre.note, div[class*='summary'] pre.note");
+            if info.summary.is_empty() {
+                info.summary = select_text(&doc, "div.summary, div[class*='summary']");
+            }
         }
 
         // Fetch chapter list from catalog page

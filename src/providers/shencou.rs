@@ -34,83 +34,84 @@ impl Provider for ShencouProvider {
     }
 
     async fn get_book_info(&self, client: &HttpClient, book_id: &str) -> Result<BookInfo> {
-        // Fetch book info page
+        // Fetch book info page and extract data before next await
         let info_url = format!("{}/books/read_{}.html", self.base_url(), book_id);
         let html_str = client.get(&info_url).await?;
-        let doc = Html::parse_document(&html_str);
-
         let mut info = BookInfo::default();
+        {
+            let doc = Html::parse_document(&html_str);
 
-        // Book name from span a
-        if let Ok(sel) = Selector::parse("span a") {
-            for elem in doc.select(&sel) {
-                let text = element_text(&elem);
-                if !text.is_empty() {
-                    info.book_name = text.trim_end_matches("小说").to_string();
-                    break;
-                }
-            }
-        }
-        if info.book_name.is_empty() {
-            info.book_name = select_text(&doc, "h1");
-        }
-
-        // Author, word count, status, update from td elements
-        if let Ok(sel) = Selector::parse("td") {
-            for elem in doc.select(&sel) {
-                let text = element_text(&elem);
-                if text.contains("小说作者") {
-                    info.author = text
-                        .replace("小说作者：", "")
-                        .replace("小说作者:", "")
-                        .trim()
-                        .to_string();
-                } else if text.contains("全文长度") {
-                    info.word_count = text
-                        .replace("全文长度：", "")
-                        .replace("全文长度:", "")
-                        .trim()
-                        .to_string();
-                } else if text.contains("写作进度") {
-                    info.serial_status = text
-                        .replace("写作进度：", "")
-                        .replace("写作进度:", "")
-                        .trim()
-                        .to_string();
-                } else if text.contains("最后更新") {
-                    info.update_time = text
-                        .replace("最后更新：", "")
-                        .replace("最后更新:", "")
-                        .trim()
-                        .to_string();
-                }
-            }
-        }
-
-        // Cover from image link
-        info.cover_url = select_attr(&doc, "a[href*='/files/article/image'] img", "src");
-        if info.cover_url.is_empty() {
-            info.cover_url = select_attr(&doc, "img[src*='/files/article/image']", "src");
-        }
-        if !info.cover_url.is_empty() && !info.cover_url.starts_with("http") {
-            info.cover_url = normalize_url(self.base_url(), &info.cover_url);
-        }
-
-        // Summary - extract from table cell containing "内容简介"
-        if let Ok(sel) = Selector::parse("td[width='80%'][valign='top']") {
-            if let Some(elem) = doc.select(&sel).next() {
-                let text = element_text(&elem);
-                let summary = if let Some(start) = text.find("内容简介：") {
-                    let after = &text[start + "内容简介：".len()..];
-                    if let Some(end) = after.find("本书公告：") {
-                        after[..end].trim().to_string()
-                    } else {
-                        after.trim().to_string()
+            // Book name from span a
+            if let Ok(sel) = Selector::parse("span a") {
+                for elem in doc.select(&sel) {
+                    let text = element_text(&elem);
+                    if !text.is_empty() {
+                        info.book_name = text.trim_end_matches("小说").to_string();
+                        break;
                     }
-                } else {
-                    text.trim().to_string()
-                };
-                info.summary = summary;
+                }
+            }
+            if info.book_name.is_empty() {
+                info.book_name = select_text(&doc, "h1");
+            }
+
+            // Author, word count, status, update from td elements
+            if let Ok(sel) = Selector::parse("td") {
+                for elem in doc.select(&sel) {
+                    let text = element_text(&elem);
+                    if text.contains("小说作者") {
+                        info.author = text
+                            .replace("小说作者：", "")
+                            .replace("小说作者:", "")
+                            .trim()
+                            .to_string();
+                    } else if text.contains("全文长度") {
+                        info.word_count = text
+                            .replace("全文长度：", "")
+                            .replace("全文长度:", "")
+                            .trim()
+                            .to_string();
+                    } else if text.contains("写作进度") {
+                        info.serial_status = text
+                            .replace("写作进度：", "")
+                            .replace("写作进度:", "")
+                            .trim()
+                            .to_string();
+                    } else if text.contains("最后更新") {
+                        info.update_time = text
+                            .replace("最后更新：", "")
+                            .replace("最后更新:", "")
+                            .trim()
+                            .to_string();
+                    }
+                }
+            }
+
+            // Cover from image link
+            info.cover_url = select_attr(&doc, "a[href*='/files/article/image'] img", "src");
+            if info.cover_url.is_empty() {
+                info.cover_url = select_attr(&doc, "img[src*='/files/article/image']", "src");
+            }
+            if !info.cover_url.is_empty() && !info.cover_url.starts_with("http") {
+                info.cover_url = normalize_url(self.base_url(), &info.cover_url);
+            }
+
+            // Summary
+            if let Ok(sel) = Selector::parse("td[width='80%'][valign='top']") {
+                if let Some(elem) = doc.select(&sel).next() {
+                    let text = element_text(&elem);
+                    let summary = if let Some(start) = text.find("内容简介：") {
+                        let after = &text[start + "内容简介：".len()..];
+                        if let Some(end) = after.find("本书公告：") {
+                            after[..end].trim().to_string()
+                        } else {
+                            after.trim().to_string()
+                        }
+                    } else {
+                        text.trim().to_string()
+                    };
+                    info.summary = summary;
+                }
             }
         }
 
@@ -234,11 +235,7 @@ impl Provider for ShencouProvider {
         let html_str = client.get(&url).await?;
         let doc = Html::parse_document(&html_str);
 
-        let mut title = select_text(&doc, "h1");
-        // Remove book name prefix if present
-        if !info_book_name_empty(&title) {
-            // Just use h1 text as-is
-        }
+        let title = select_text(&doc, "h1");
 
         // Content: extract text between BookSee_Right div and <!--over--> comment
         // Since we can't easily parse HTML comments with scraper, use regex fallback
@@ -267,10 +264,6 @@ impl Provider for ShencouProvider {
             content,
         })
     }
-}
-
-fn info_book_name_empty(_title: &str) -> bool {
-    false
 }
 
 pub fn provider() -> Box<dyn Provider> {

@@ -3,7 +3,6 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::types::SearchResult;
-use crate::utils::element_text;
 use crate::providers::biquge_common::{select_text_in, select_attr_in};
 
 /// Shared ManggNet-style search implementation

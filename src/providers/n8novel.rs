@@ -7,7 +7,7 @@ use crate::client::HttpClient;
 use crate::provider::Provider;
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::{select_text_in, select_attr_in};
+use crate::providers::biquge_common::select_text_in;
 
 pub struct N8novelProvider;
 

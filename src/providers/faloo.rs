@@ -179,9 +179,9 @@ impl Provider for FalooProvider {
         let html_str = client.get(&url).await?;
         let doc = Html::parse_document(&html_str);
 
-        let title = select_text(&doc, "div.c_l_title h1");
+        let mut title = select_text(&doc, "div.c_l_title h1");
         if title.is_empty() {
-            let _ = select_text(&doc, "h1");
+            title = select_text(&doc, "h1");
         }
 
         let mut content = String::new();

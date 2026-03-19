@@ -38,7 +38,7 @@ impl Provider for ManggComProvider {
 
         // Author from first p in #info
         if let Ok(sel) = Selector::parse("#info p") {
-            let mut ps: Vec<_> = doc.select(&sel).collect();
+            let ps: Vec<_> = doc.select(&sel).collect();
             if !ps.is_empty() {
                 let author_text = element_text(&ps[0]);
                 info.author = author_text

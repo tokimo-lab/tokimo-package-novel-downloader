@@ -37,37 +37,31 @@ impl Provider for LnovelProvider {
             info.book_name = select_text(&doc, "h1");
         }
 
-        // Author from dt/dd pattern
-        if let Ok(dt_sel) = Selector::parse("dt") {
-            for dt_elem in doc.select(&dt_sel) {
-                let dt_text = element_text(&dt_elem);
-                if dt_text.contains("作者") {
-                    // Get next sibling dd
-                    if let Some(next) = dt_elem.next_sibling_element() {
-                        if next.value().name() == "dd" {
-                            let dd_ref = scraper::ElementRef::wrap(next.into()).unwrap_or(dt_elem.clone());
-                            if let Ok(a_sel) = Selector::parse("a") {
-                                if let Some(a) = dd_ref.select(&a_sel).next() {
-                                    info.author = element_text(&a);
+        // Metadata from dl > dt + dd pairs
+        if let Ok(dl_sel) = Selector::parse("dl") {
+            for dl_elem in doc.select(&dl_sel) {
+                let mut last_dt_text = String::new();
+                for child in dl_elem.children() {
+                    if let Some(el) = scraper::ElementRef::wrap(child) {
+                        let tag = el.value().name();
+                        if tag == "dt" {
+                            last_dt_text = element_text(&el);
+                        } else if tag == "dd" && !last_dt_text.is_empty() {
+                            if last_dt_text.contains("作者") {
+                                if let Ok(a_sel) = Selector::parse("a") {
+                                    if let Some(a) = el.select(&a_sel).next() {
+                                        info.author = element_text(&a);
+                                    }
                                 }
+                                if info.author.is_empty() {
+                                    info.author = element_text(&el);
+                                }
+                            } else if last_dt_text.contains("更新") {
+                                info.update_time = element_text(&el);
+                            } else if last_dt_text.contains("状态") {
+                                info.serial_status = element_text(&el);
                             }
-                            if info.author.is_empty() {
-                                info.author = element_text(&dd_ref);
-                            }
-                        }
-                    }
-                } else if dt_text.contains("更新") {
-                    if let Some(next) = dt_elem.next_sibling_element() {
-                        if next.value().name() == "dd" {
-                            let dd_ref = scraper::ElementRef::wrap(next.into()).unwrap_or(dt_elem.clone());
-                            info.update_time = element_text(&dd_ref);
-                        }
-                    }
-                } else if dt_text.contains("状态") {
-                    if let Some(next) = dt_elem.next_sibling_element() {
-                        if next.value().name() == "dd" {
-                            let dd_ref = scraper::ElementRef::wrap(next.into()).unwrap_or(dt_elem.clone());
-                            info.serial_status = element_text(&dd_ref);
+                            last_dt_text.clear();
                         }
                     }
                 }
@@ -181,9 +175,9 @@ impl Provider for LnovelProvider {
         let html_str = client.get(&url).await?;
         let doc = Html::parse_document(&html_str);
 
-        let title = select_text(&doc, "main h1");
+        let mut title = select_text(&doc, "main h1");
         if title.is_empty() {
-            let _ = select_text(&doc, "h1");
+            title = select_text(&doc, "h1");
         }
 
         // Content from #chaptersShowContent p

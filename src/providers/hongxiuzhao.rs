@@ -97,9 +97,9 @@ impl Provider for HongxiuzhaoProvider {
         let html_str = client.get(&url).await?;
         let doc = Html::parse_document(&html_str);
 
-        let title = select_text(&doc, "div.article-content h1");
+        let mut title = select_text(&doc, "div.article-content h1");
         if title.is_empty() {
-            let _ = select_text(&doc, "h1");
+            title = select_text(&doc, "h1");
         }
 
         // Content from div.article-content p, filtering ads

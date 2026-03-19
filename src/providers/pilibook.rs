@@ -6,7 +6,6 @@ use crate::client::HttpClient;
 use crate::provider::Provider;
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::select_text_in;
 
 pub struct PilibookProvider;
 
@@ -33,48 +32,42 @@ impl Provider for PilibookProvider {
     async fn get_book_info(&self, client: &HttpClient, book_id: &str) -> Result<BookInfo> {
         let normalized = Self::normalize_book_id(book_id);
 
-        // Fetch info page
+        // Fetch info page and extract all data before next await
         let info_url = format!("{}/{}/info.html", self.base_url(), normalized);
         let html_str = client.get(&info_url).await?;
-        let doc = Html::parse_document(&html_str);
-
         let mut info = BookInfo::default();
+        {
+            let doc = Html::parse_document(&html_str);
 
-        // Book name
-        info.book_name = select_text(&doc, "h2.works-intro-title strong, h2[class*='works-intro-title'] strong");
-        if info.book_name.is_empty() {
-            info.book_name = select_text(&doc, "h2.works-intro-title, h1");
-        }
+            info.book_name = select_text(&doc, "h2.works-intro-title strong, h2[class*='works-intro-title'] strong");
+            if info.book_name.is_empty() {
+                info.book_name = select_text(&doc, "h2.works-intro-title, h1");
+            }
 
-        // Author
-        info.author = select_text(&doc, "a.works-author-name, a[class*='works-author-name']");
+            info.author = select_text(&doc, "a.works-author-name, a[class*='works-author-name']");
+            info.serial_status = select_text(&doc, "label.works-intro-status, label[class*='works-intro-status']");
 
-        // Status
-        info.serial_status = select_text(&doc, "label.works-intro-status, label[class*='works-intro-status']");
+            let mut cover = select_attr(&doc, "div.works-cover img, div[class*='works-cover'] img", "src");
+            if cover.starts_with("//") {
+                cover = format!("https:{}", cover);
+            } else if !cover.is_empty() && !cover.starts_with("http") {
+                cover = format!("{}{}", self.base_url(), cover);
+            }
+            info.cover_url = cover;
 
-        // Cover
-        let mut cover = select_attr(&doc, "div.works-cover img, div[class*='works-cover'] img", "src");
-        if cover.starts_with("//") {
-            cover = format!("https:{}", cover);
-        } else if !cover.is_empty() && !cover.starts_with("http") {
-            cover = format!("{}{}", self.base_url(), cover);
-        }
-        info.cover_url = cover;
+            info.summary = select_text(&doc, "p.works-intro-short, p[class*='works-intro-short']");
 
-        // Summary
-        info.summary = select_text(&doc, "p.works-intro-short, p[class*='works-intro-short']");
-
-        // Update time from chapter log
-        if let Ok(sel) = Selector::parse("ul.works-chapter-log li, ul[class*='works-chapter-log'] li") {
-            for elem in doc.select(&sel) {
-                let text = element_text(&elem);
-                if text.contains("最新章") {
-                    if let Ok(span_sel) = Selector::parse("span.ui-text-gray6, span[class*='ui-text-gray6']") {
-                        if let Some(span) = elem.select(&span_sel).next() {
-                            info.update_time = element_text(&span);
+            if let Ok(sel) = Selector::parse("ul.works-chapter-log li, ul[class*='works-chapter-log'] li") {
+                for elem in doc.select(&sel) {
+                    let text = element_text(&elem);
+                    if text.contains("最新章") {
+                        if let Ok(span_sel) = Selector::parse("span.ui-text-gray6, span[class*='ui-text-gray6']") {
+                            if let Some(span) = elem.select(&span_sel).next() {
+                                info.update_time = element_text(&span);
+                            }
                         }
+                        break;
                     }
-                    break;
                 }
             }
         }

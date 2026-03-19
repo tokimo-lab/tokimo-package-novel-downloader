@@ -24,51 +24,44 @@ impl Provider for ShaoniandreamProvider {
     }
 
     async fn get_book_info(&self, client: &HttpClient, book_id: &str) -> Result<BookInfo> {
-        // Fetch book detail page
+        // Fetch book detail page and extract info before next await
         let url = format!("{}/book_detail/{}", self.base_url(), book_id);
         let html_str = client.get(&url).await?;
-        let doc = Html::parse_document(&html_str);
-
         let mut info = BookInfo::default();
+        {
+            let doc = Html::parse_document(&html_str);
 
-        // Book name
-        info.book_name = select_text(&doc, "div.bookdetail-name span.title, div[class*='bookdetail-name'] span.title");
-        if info.book_name.is_empty() {
-            info.book_name = select_text(&doc, "h1");
-        }
-
-        // Author
-        info.author = select_text(&doc, "span.penName a, span[class*='penName'] a");
-        if info.author.is_empty() {
-            info.author = select_text(&doc, "span.penName, span[class*='penName']");
-        }
-
-        // Cover from data-original attribute
-        let mut cover = select_attr(&doc, "div.cover img", "data-original");
-        if cover.is_empty() {
-            cover = select_attr(&doc, "div.cover img", "src");
-        }
-        if !cover.is_empty() && !cover.starts_with("http") {
-            cover = normalize_url(self.base_url(), &cover);
-        }
-        info.cover_url = cover;
-
-        // Update time
-        let update_text = select_text(&doc, "div.bookdetial-newchapter span, div[class*='bookdetial-newchapter'] span");
-        info.update_time = update_text.replace("● ", "").trim().to_string();
-
-        // Word count
-        if let Ok(sel) = Selector::parse("div.font-list span") {
-            if let Some(elem) = doc.select(&sel).next() {
-                info.word_count = element_text(&elem);
+            info.book_name = select_text(&doc, "div.bookdetail-name span.title, div[class*='bookdetail-name'] span.title");
+            if info.book_name.is_empty() {
+                info.book_name = select_text(&doc, "h1");
             }
+
+            info.author = select_text(&doc, "span.penName a, span[class*='penName'] a");
+            if info.author.is_empty() {
+                info.author = select_text(&doc, "span.penName, span[class*='penName']");
+            }
+
+            let mut cover = select_attr(&doc, "div.cover img", "data-original");
+            if cover.is_empty() {
+                cover = select_attr(&doc, "div.cover img", "src");
+            }
+            if !cover.is_empty() && !cover.starts_with("http") {
+                cover = normalize_url(self.base_url(), &cover);
+            }
+            info.cover_url = cover;
+
+            let update_text = select_text(&doc, "div.bookdetial-newchapter span, div[class*='bookdetial-newchapter'] span");
+            info.update_time = update_text.replace("● ", "").trim().to_string();
+
+            if let Ok(sel) = Selector::parse("div.font-list span") {
+                if let Some(elem) = doc.select(&sel).next() {
+                    info.word_count = element_text(&elem);
+                }
+            }
+
+            info.serial_status = select_text(&doc, "div.bookdetail-name i, div[class*='bookdetail-name'] i");
+            info.summary = select_text(&doc, "div.bookdetial-jianjie, div[class*='bookdetial-jianjie']");
         }
-
-        // Status
-        info.serial_status = select_text(&doc, "div.bookdetail-name i, div[class*='bookdetail-name'] i");
-
-        // Summary
-        info.summary = select_text(&doc, "div.bookdetial-jianjie, div[class*='bookdetial-jianjie']");
 
         // Fetch chapter directory via signing API
         let sign_url = format!(
