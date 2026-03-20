@@ -27,6 +27,11 @@ async fn async_main() -> Result<()> {
     let all_providers = providers::get_all_providers();
 
     match args.get(1).map(|s| s.as_str()) {
+        Some("search-first") => {
+            // Non-interactive: print "provider book_id title" for best match
+            let keyword = args.get(2).expect("Usage: novel-downloader search-first <keyword>");
+            search_first(&client, &all_providers, keyword).await?;
+        }
         Some("search") => {
             let keyword = args
                 .get(2)
@@ -164,5 +169,53 @@ async fn search_and_download(
 
     download::download_novel(provider.as_ref(), client, &selected.book_id, None).await?;
 
+    Ok(())
+}
+
+/// Non-interactive search: prints "provider\tbook_id\ttitle\tauthor" for best result
+async fn search_first(
+    client: &HttpClient,
+    providers: &[Box<dyn Provider>],
+    keyword: &str,
+) -> Result<()> {
+    let search_providers: Vec<_> = providers.iter().filter(|p| p.supports_search()).collect();
+
+    let futures: Vec<_> = search_providers
+        .iter()
+        .map(|p| async move {
+            match tokio::time::timeout(
+                std::time::Duration::from_secs(12),
+                p.search(client, keyword, 5),
+            )
+            .await
+            {
+                Ok(Ok(results)) => results,
+                _ => vec![],
+            }
+        })
+        .collect();
+
+    let results = join_all(futures).await;
+    let all_results: Vec<_> = results.into_iter().flatten().collect();
+
+    if all_results.is_empty() {
+        eprintln!("NOT_FOUND:{}", keyword);
+        return Ok(());
+    }
+
+    // Prefer exact title match, then partial match
+    let kw_lower = keyword.to_lowercase();
+    let best = all_results
+        .iter()
+        .find(|r| r.title.to_lowercase() == kw_lower)
+        .or_else(|| {
+            all_results
+                .iter()
+                .find(|r| r.title.to_lowercase().contains(&kw_lower))
+        })
+        .unwrap_or(&all_results[0]);
+
+    // Output tab-separated: provider  book_id  title  author
+    println!("{}\t{}\t{}\t{}", best.site, best.book_id, best.title, best.author);
     Ok(())
 }
