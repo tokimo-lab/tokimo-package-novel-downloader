@@ -87,15 +87,18 @@ async fn search_and_download(
     providers: &[Box<dyn Provider>],
     keyword: &str,
 ) -> Result<()> {
+    use futures::StreamExt;
+    use futures::stream::FuturesUnordered;
+
     let search_providers: Vec<_> = providers.iter().filter(|p| p.supports_search()).collect();
     println!(
-        "Searching '{}' across {} providers...\n",
+        "Searching '{}' across {} providers (streaming results)...\n",
         keyword,
         search_providers.len()
     );
 
-    // Search all providers concurrently
-    let futures: Vec<_> = search_providers
+    // Stream results: print each provider's results the moment they arrive
+    let mut futs: FuturesUnordered<_> = search_providers
         .iter()
         .map(|p| {
             let name = p.name().to_string();
@@ -106,38 +109,46 @@ async fn search_and_download(
                 )
                 .await
                 {
-                    Ok(Ok(results)) => {
-                        if !results.is_empty() {
-                            eprint!("  ✓ {} ({} results)\n", name, results.len());
-                        }
-                        results
-                    }
-                    Ok(Err(_e)) => {
-                        vec![]
-                    }
-                    Err(_) => {
-                        vec![]
-                    }
+                    Ok(Ok(results)) => (name, results),
+                    Ok(Err(_)) => (name, vec![]),
+                    Err(_) => (name, vec![]),
                 }
             }
         })
         .collect();
 
-    let results = join_all(futures).await;
-    let all_results: Vec<_> = results.into_iter().flatten().collect();
+    let mut all_results: Vec<crate::types::SearchResult> = Vec::new();
+
+    // Results stream in as each provider finishes
+    while let Some((site_name, results)) = futs.next().await {
+        if !results.is_empty() {
+            for r in &results {
+                println!(
+                    "[{:3}] {} - {} [{}]",
+                    all_results.len() + 1,
+                    r.title,
+                    r.author,
+                    site_name
+                );
+            }
+            all_results.extend(results);
+        }
+    }
 
     if all_results.is_empty() {
         println!("No results found.");
         return Ok(());
     }
 
-    println!("\nFound {} results:\n", all_results.len());
+    println!("\n{} results total. Enter number to download: ", all_results.len());
+
+    // Rebuild display list for dialoguer
     let items: Vec<String> = all_results
         .iter()
         .enumerate()
         .map(|(i, r)| {
             format!(
-                "[{:2}] {} - {} [{}]",
+                "[{:3}] {} - {} [{}]",
                 i + 1,
                 r.title,
                 r.author,
@@ -145,11 +156,6 @@ async fn search_and_download(
             )
         })
         .collect();
-
-    for item in &items {
-        println!("{}", item);
-    }
-    println!();
 
     let selection = Select::new()
         .with_prompt("Select a novel to download")
