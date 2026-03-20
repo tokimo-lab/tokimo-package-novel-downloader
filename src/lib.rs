@@ -8,7 +8,7 @@ pub mod types;
 pub mod utils;
 
 pub use types::{BookInfo, Chapter, ChapterInfo, DownloadEvent, SearchResult, Volume};
-pub use download::download_novel;
+pub use download::stream_download;
 
 use futures::Stream;
 use serde::Serialize;
