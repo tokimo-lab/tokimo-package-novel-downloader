@@ -3,7 +3,16 @@ name = "novel-downloader"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "novel_downloader"
+path = "src/lib.rs"
+
+[[bin]]
+name = "novel-downloader"
+path = "src/main.rs"
+
 [dependencies]
+tokio-stream = "0.1"
 reqwest = { version = "0.12", features = ["cookies", "gzip", "brotli"] }
 tokio = { version = "1", features = ["full"] }
 scraper = "0.21"

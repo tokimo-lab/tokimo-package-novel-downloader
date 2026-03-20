@@ -7,6 +7,12 @@ pub struct HttpClient {
     client: reqwest::Client,
 }
 
+impl Clone for HttpClient {
+    fn clone(&self) -> Self {
+        Self { client: self.client.clone() }
+    }
+}
+
 impl HttpClient {
     pub fn new() -> Result<Self> {
         let mut headers = HeaderMap::new();

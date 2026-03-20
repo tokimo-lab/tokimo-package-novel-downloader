@@ -43,6 +43,37 @@ pub struct Chapter {
     pub content: String,
 }
 
+/// Events emitted by `download_stream`, in order.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum DownloadEvent {
+    /// First event: book metadata + total chapter count.
+    BookInfo {
+        title: String,
+        author: String,
+        summary: String,
+        total: usize,
+    },
+    /// One successfully downloaded chapter (ordered, no gaps).
+    Chapter {
+        index: usize,
+        volume: Option<String>,
+        title: String,
+        content: String,
+    },
+    /// One chapter that failed to download.
+    ChapterError {
+        index: usize,
+        title: String,
+        error: String,
+    },
+    /// Last event: final counts.
+    Done {
+        downloaded: usize,
+        failed: usize,
+    },
+}
+
 impl Default for BookInfo {
     fn default() -> Self {
         Self {
