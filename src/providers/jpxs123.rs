@@ -150,7 +150,7 @@ impl Provider for Jpxs123Provider {
         let book_name = {
             let sel = Selector::parse("div.readTop a").unwrap();
             doc.select(&sel)
-                .last()
+                .next_back()
                 .map(|e| element_text(&e))
                 .unwrap_or_default()
         };

@@ -122,7 +122,7 @@ impl Provider for DxmwxProvider {
                         .next()
                         .unwrap_or("")
                         .split('_')
-                        .last()
+                        .next_back()
                         .unwrap_or("")
                         .to_string();
                     chapters.push(ChapterInfo {

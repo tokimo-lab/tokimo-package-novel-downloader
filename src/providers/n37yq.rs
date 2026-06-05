@@ -67,7 +67,7 @@ impl Provider for N37yqProvider {
                 .unwrap_or("")
                 .to_string();
 
-            let cover_url = select_attr_in(&elem, "div.imgbox img", "src");
+            let _cover_url = select_attr_in(&elem, "div.imgbox img", "src");
             let title = select_text_in(&elem, "h2.tit a");
             let author = select_text_in(&elem, "div.bookinfo a:first-child");
 
@@ -113,9 +113,8 @@ impl Provider for N37yqProvider {
         info.serial_status = meta_content(&info_doc, "og:novel:status");
         info.update_time = meta_content(&info_doc, "og:novel:update_time");
 
-        let summary = meta_content(&info_doc, "og:description")
-            .replace('\u{3000}', " ")
-            .replace('\u{00a0}', " ");
+        let summary =
+            meta_content(&info_doc, "og:description").replace(['\u{3000}', '\u{00a0}'], " ");
         info.summary = if summary.is_empty() {
             select_text(&info_doc, "div.book-dec p")
         } else {

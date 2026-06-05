@@ -98,7 +98,7 @@ impl Provider for NovelpiaProvider {
             .unwrap_or(0) as usize;
         let per_page = 20;
         let total_pages = if total_count > 0 {
-            (total_count + per_page - 1) / per_page
+            total_count.div_ceil(per_page)
         } else {
             1
         };

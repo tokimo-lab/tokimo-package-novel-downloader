@@ -129,19 +129,17 @@ impl Provider for HetushuProvider {
                             current_vol_name = elem[1].trim().to_string();
                         }
                     }
-                    "dd" => {
-                        if elem.len() > 2 {
-                            let title = elem[1].trim().to_string();
-                            let chapter_id = elem[2].clone();
-                            current_chapters.push(ChapterInfo {
-                                title,
-                                chapter_id: chapter_id.clone(),
-                                url: format!(
-                                    "https://www.hetushu.com/book/{}/{}.html",
-                                    book_id, chapter_id
-                                ),
-                            });
-                        }
+                    "dd" if elem.len() > 2 => {
+                        let title = elem[1].trim().to_string();
+                        let chapter_id = elem[2].clone();
+                        current_chapters.push(ChapterInfo {
+                            title,
+                            chapter_id: chapter_id.clone(),
+                            url: format!(
+                                "https://www.hetushu.com/book/{}/{}.html",
+                                book_id, chapter_id
+                            ),
+                        });
                     }
                     _ => {}
                 }

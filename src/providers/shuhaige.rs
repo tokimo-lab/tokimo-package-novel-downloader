@@ -80,7 +80,7 @@ impl Provider for ShuhaigeProvider {
             };
 
             let cover_rel = select_attr_in(&elem, "dt a img", "src");
-            let cover_url = if !cover_rel.is_empty() {
+            let _cover_url = if !cover_rel.is_empty() {
                 normalize_url(Self::BASE_URL, &cover_rel)
             } else {
                 String::new()

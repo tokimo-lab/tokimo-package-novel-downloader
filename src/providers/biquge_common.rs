@@ -219,7 +219,7 @@ impl Provider for Biquge1Provider {
                 }
                 if let Ok(page_html) = client.get(&next_url).await {
                     let page_chapter = self.parse_chapter_html(&page_html)?;
-                    chapter.content.push_str("\n");
+                    chapter.content.push('\n');
                     chapter.content.push_str(&page_chapter.content);
                 }
                 page += 1;

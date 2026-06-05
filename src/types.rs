@@ -11,7 +11,7 @@ pub struct SearchResult {
     pub word_count: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct BookInfo {
     pub book_name: String,
     pub author: String,
@@ -69,19 +69,4 @@ pub enum DownloadEvent {
     },
     /// Last event: final counts.
     Done { downloaded: usize, failed: usize },
-}
-
-impl Default for BookInfo {
-    fn default() -> Self {
-        Self {
-            book_name: String::new(),
-            author: String::new(),
-            summary: String::new(),
-            cover_url: String::new(),
-            update_time: String::new(),
-            word_count: String::new(),
-            serial_status: String::new(),
-            volumes: Vec::new(),
-        }
-    }
 }

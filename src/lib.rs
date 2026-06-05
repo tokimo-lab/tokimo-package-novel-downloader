@@ -1,4 +1,4 @@
-#![allow(unused_imports, dead_code)]
+#![allow(unused_imports, dead_code, clippy::field_reassign_with_default)]
 
 pub mod client;
 pub mod download;

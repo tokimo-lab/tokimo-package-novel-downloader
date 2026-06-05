@@ -58,8 +58,7 @@ impl Provider for DushuProvider {
         // Summary
         let summary = select_text(&doc, "div.txtsummary, div[class*='txtsummary']");
         info.summary = summary
-            .replace('\u{3000}', " ")
-            .replace('\u{00a0}', " ")
+            .replace(['\u{3000}', '\u{00a0}'], " ")
             .trim()
             .to_string();
 

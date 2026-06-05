@@ -119,9 +119,8 @@ impl Provider for LaoyaoxsProvider {
             info.cover_url = format!("https:{}", info.cover_url);
         }
 
-        info.update_time = meta_content(&info_doc, "og:novel:update_time")
-            .replace('\u{00a0}', " ")
-            .replace('\u{3000}', " ");
+        info.update_time =
+            meta_content(&info_doc, "og:novel:update_time").replace(['\u{00a0}', '\u{3000}'], " ");
 
         info.summary = select_text(&info_doc, "p.intro");
 

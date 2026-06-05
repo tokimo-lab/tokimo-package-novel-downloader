@@ -140,29 +140,25 @@ impl Provider for PiaotiaProvider {
 
         info.author = extract_td_field(&info_doc, &["作", "者"])
             .replace("作者：", "")
-            .replace('\u{00a0}', "")
-            .replace(' ', "")
+            .replace(['\u{00a0}', ' '], "")
             .trim()
             .to_string();
 
         info.word_count = extract_td_field(&info_doc, &["全文长度"])
             .replace("全文长度：", "")
-            .replace('\u{00a0}', "")
-            .replace(' ', "")
+            .replace(['\u{00a0}', ' '], "")
             .trim()
             .to_string();
 
         info.update_time = extract_td_field(&info_doc, &["最后更新"])
             .replace("最后更新：", "")
-            .replace('\u{00a0}', "")
-            .replace(' ', "")
+            .replace(['\u{00a0}', ' '], "")
             .trim()
             .to_string();
 
         info.serial_status = extract_td_field(&info_doc, &["文章状态"])
             .replace("文章状态：", "")
-            .replace('\u{00a0}', "")
-            .replace(' ', "")
+            .replace(['\u{00a0}', ' '], "")
             .trim()
             .to_string();
 

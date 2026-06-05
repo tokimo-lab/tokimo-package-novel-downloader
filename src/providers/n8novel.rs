@@ -166,7 +166,7 @@ impl Provider for N8novelProvider {
                             format!("{}{}", BASE_URL, href)
                         };
                         // "/read/3355/?270015" -> "270015"
-                        let chapter_id = href.split('?').last().unwrap_or("").to_string();
+                        let chapter_id = href.split('?').next_back().unwrap_or("").to_string();
                         chapters.push(ChapterInfo {
                             title,
                             chapter_id,
@@ -216,7 +216,7 @@ impl Provider for N8novelProvider {
             if seed.is_empty() {
                 "00000".to_string()
             } else {
-                seed.split(',').last().unwrap_or("00000").to_string()
+                seed.split(',').next_back().unwrap_or("00000").to_string()
             }
         };
 

@@ -55,7 +55,7 @@ impl Provider for TongrensheProvider {
                 }
                 let book_id = href
                     .split('/')
-                    .last()
+                    .next_back()
                     .unwrap_or("")
                     .split('.')
                     .next()
@@ -157,7 +157,7 @@ impl Provider for TongrensheProvider {
         let book_name = {
             if let Ok(sel) = Selector::parse("div.readTop a") {
                 doc.select(&sel)
-                    .last()
+                    .next_back()
                     .map(|e| element_text(&e))
                     .unwrap_or_default()
             } else {
