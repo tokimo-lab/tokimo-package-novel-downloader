@@ -2,6 +2,12 @@
 name = "novel-downloader"
 version = "0.1.0"
 edition = "2021"
+description = "Multi-site web novel search and download library (83+ sites supported)"
+license = "MIT"
+repository = "https://github.com/tokimo-lab/tokimo-package-novel-downloader"
+homepage = "https://github.com/tokimo-lab/tokimo-package-novel-downloader"
+keywords = ["novel", "download", "scraper", "web", "search"]
+categories = ["text-processing"]
 
 [lib]
 name = "novel_downloader"
