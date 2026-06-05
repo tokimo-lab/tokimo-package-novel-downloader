@@ -5,9 +5,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::select_text_in;
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::select_text_in;
 
 pub struct N8novelProvider;
 
@@ -72,11 +72,7 @@ impl Provider for N8novelProvider {
         keyword: &str,
         limit: usize,
     ) -> Result<Vec<SearchResult>> {
-        let url = format!(
-            "{}/search/?key={}",
-            BASE_URL,
-            urlencoding::encode(keyword)
-        );
+        let url = format!("{}/search/?key={}", BASE_URL, urlencoding::encode(keyword));
         let html = client.get(&url).await?;
         let doc = Html::parse_document(&html);
         let mut results = Vec::new();
@@ -94,11 +90,7 @@ impl Provider for N8novelProvider {
                     .next()
                     .unwrap_or("")
                     .to_string();
-                let title = elem
-                    .value()
-                    .attr("title")
-                    .unwrap_or("")
-                    .to_string();
+                let title = elem.value().attr("title").unwrap_or("").to_string();
 
                 results.push(SearchResult {
                     site: self.name().to_string(),
@@ -174,11 +166,7 @@ impl Provider for N8novelProvider {
                             format!("{}{}", BASE_URL, href)
                         };
                         // "/read/3355/?270015" -> "270015"
-                        let chapter_id = href
-                            .split('?')
-                            .last()
-                            .unwrap_or("")
-                            .to_string();
+                        let chapter_id = href.split('?').last().unwrap_or("").to_string();
                         chapters.push(ChapterInfo {
                             title,
                             chapter_id,
@@ -204,7 +192,10 @@ impl Provider for N8novelProvider {
         chapter_id: &str,
     ) -> Result<Chapter> {
         // Step 1: Fetch the chapter page to get txt_dir and url_seed
-        let chapter_page_url = format!("https://article.8novel.com/read/{}/?{}", book_id, chapter_id);
+        let chapter_page_url = format!(
+            "https://article.8novel.com/read/{}/?{}",
+            book_id, chapter_id
+        );
         let chapter_html = client.get(&chapter_page_url).await?;
 
         // Extract txt_dir from %2f(\d)% pattern
@@ -215,7 +206,8 @@ impl Provider for N8novelProvider {
             .unwrap_or_else(|| "1".to_string());
 
         // Extract URL seed from split pattern
-        let split_re = Regex::new(r#"["\'](\d+(?:,\d+)*)["\']\.split\s*\(\s*["\']\s*,\s*["\']\s*\)"#)?;
+        let split_re =
+            Regex::new(r#"["\'](\d+(?:,\d+)*)["\']\.split\s*\(\s*["\']\s*,\s*["\']\s*\)"#)?;
         let url_seed = {
             let mut seed = String::new();
             for caps in split_re.captures_iter(&chapter_html) {
@@ -242,13 +234,17 @@ impl Provider for N8novelProvider {
 
         // Try to extract title from the chapter page JS
         let title = {
-            let split_str_re = Regex::new(r#"["\']([^"\']+)["\']\.split\s*\(\s*["\']\s*,\s*["\']\s*\)"#)?;
+            let split_str_re =
+                Regex::new(r#"["\']([^"\']+)["\']\.split\s*\(\s*["\']\s*,\s*["\']\s*\)"#)?;
             let mut id_list: Option<Vec<String>> = None;
             let mut title_list: Option<Vec<String>> = None;
             for caps in split_str_re.captures_iter(&chapter_html) {
                 let content = caps[1].to_string();
                 let items: Vec<String> = content.split(',').map(|s| s.trim().to_string()).collect();
-                if items.iter().all(|s| s.is_empty() || s.chars().all(|c| c.is_ascii_digit())) {
+                if items
+                    .iter()
+                    .all(|s| s.is_empty() || s.chars().all(|c| c.is_ascii_digit()))
+                {
                     if items.len() > 1 && !items.iter().all(|s| s.is_empty()) {
                         id_list = Some(items);
                     }

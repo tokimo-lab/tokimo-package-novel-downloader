@@ -54,8 +54,8 @@ impl Provider for TianyabooksProvider {
             info.author = select_text(&doc, "div.book h2 a");
         }
         if info.author.is_empty() {
-            info.author = select_text(&doc, "div.catalog div.info, div.book h2")
-                .replace("作者：", "");
+            info.author =
+                select_text(&doc, "div.catalog div.info, div.book h2").replace("作者：", "");
         }
         if info.author.is_empty() {
             info.author = "未知作者".to_string();

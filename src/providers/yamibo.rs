@@ -77,18 +77,12 @@ impl Provider for YamiboProvider {
                 };
 
                 let mut chapters = Vec::new();
-                if let Ok(chap_sel) =
-                    Selector::parse("div.panel-body a[href*=\"view-chapter\"]")
-                {
+                if let Ok(chap_sel) = Selector::parse("div.panel-body a[href*=\"view-chapter\"]") {
                     for chap in vol_node.select(&chap_sel) {
                         let title = element_text(&chap);
                         let href = chap.value().attr("href").unwrap_or("");
                         // Extract chapter_id from query param ?id=XXX
-                        let chapter_id = href
-                            .split("id=")
-                            .last()
-                            .unwrap_or("")
-                            .to_string();
+                        let chapter_id = href.split("id=").last().unwrap_or("").to_string();
                         chapters.push(ChapterInfo {
                             title,
                             chapter_id,
@@ -109,9 +103,7 @@ impl Provider for YamiboProvider {
         // Fallback: flat chapter list
         if volumes.is_empty() {
             let mut chapters = Vec::new();
-            if let Ok(chap_sel) =
-                Selector::parse("div.panel-body a[href*=\"view-chapter\"]")
-            {
+            if let Ok(chap_sel) = Selector::parse("div.panel-body a[href*=\"view-chapter\"]") {
                 for chap in doc.select(&chap_sel) {
                     let title = element_text(&chap);
                     let href = chap.value().attr("href").unwrap_or("");
@@ -158,9 +150,7 @@ impl Provider for YamiboProvider {
         if let Ok(sel) = Selector::parse("#w0-collapse1 p") {
             for p in doc.select(&sel) {
                 let text = element_text(&p);
-                let normalized = text
-                    .replace('\u{00a0}', " ")
-                    .replace('\u{3000}', "  ");
+                let normalized = text.replace('\u{00a0}', " ").replace('\u{3000}', "  ");
                 let trimmed = normalized.trim().to_string();
                 if !trimmed.is_empty() {
                     paragraphs.push(trimmed);

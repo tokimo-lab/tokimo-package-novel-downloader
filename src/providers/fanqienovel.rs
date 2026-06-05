@@ -88,9 +88,7 @@ impl Provider for FanqienovelProvider {
             })
             .unwrap_or_default();
 
-        let chapter_groups = page
-            .get("chapterListWithVolume")
-            .and_then(|v| v.as_array());
+        let chapter_groups = page.get("chapterListWithVolume").and_then(|v| v.as_array());
 
         if let Some(groups) = chapter_groups {
             for (i, group) in groups.iter().enumerate() {
@@ -111,8 +109,7 @@ impl Provider for FanqienovelProvider {
                 }
 
                 // Sort by realChapterOrder or itemId
-                let mut sorted_chapters: Vec<&serde_json::Value> =
-                    group_arr.iter().collect();
+                let mut sorted_chapters: Vec<&serde_json::Value> = group_arr.iter().collect();
                 sorted_chapters.sort_by_key(|ch| {
                     ch.get("realChapterOrder")
                         .or_else(|| ch.get("itemId"))
@@ -165,9 +162,7 @@ impl Provider for FanqienovelProvider {
 
         let state = extract_initial_state(&html_str)?;
 
-        let chapter_data = state
-            .get("reader")
-            .and_then(|r| r.get("chapterData"));
+        let chapter_data = state.get("reader").and_then(|r| r.get("chapterData"));
 
         let (title, content) = if let Some(cd) = chapter_data {
             let title = json_str(cd, "title");
@@ -290,7 +285,9 @@ fn extract_initial_state(html_str: &str) -> Result<serde_json::Value> {
     }
 
     if end_pos == 0 {
-        return Err(anyhow::anyhow!("Could not find end of __INITIAL_STATE__ JSON"));
+        return Err(anyhow::anyhow!(
+            "Could not find end of __INITIAL_STATE__ JSON"
+        ));
     }
 
     let json_str = &json_start[..end_pos];
@@ -302,9 +299,7 @@ fn extract_initial_state(html_str: &str) -> Result<serde_json::Value> {
 
     // Fallback: the JS object might have unquoted keys or single-quoted strings.
     // Try a lenient approach: replace common JS patterns
-    let cleaned = json_str
-        .replace("undefined", "null")
-        .replace("'", "\"");
+    let cleaned = json_str.replace("undefined", "null").replace("'", "\"");
     serde_json::from_str::<serde_json::Value>(&cleaned)
         .map_err(|e| anyhow::anyhow!("Failed to parse __INITIAL_STATE__ JSON: {}", e))
 }

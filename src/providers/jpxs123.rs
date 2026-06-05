@@ -4,9 +4,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::{select_attr_in, select_text_in};
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::{select_text_in, select_attr_in};
 
 pub struct Jpxs123Provider;
 
@@ -36,11 +36,10 @@ impl Provider for Jpxs123Provider {
         limit: usize,
     ) -> Result<Vec<SearchResult>> {
         let html = client
-            .post_form(Self::SEARCH_URL, &[
-                ("keyboard", keyword),
-                ("show", "title"),
-                ("classid", "0"),
-            ])
+            .post_form(
+                Self::SEARCH_URL,
+                &[("keyboard", keyword), ("show", "title"), ("classid", "0")],
+            )
             .await?;
         let doc = Html::parse_document(&html);
         let mut results = Vec::new();
@@ -52,11 +51,17 @@ impl Provider for Jpxs123Provider {
                 continue;
             }
 
-            let book_id = href.trim_matches('/').split('.').next().unwrap_or("")
+            let book_id = href
+                .trim_matches('/')
+                .split('.')
+                .next()
+                .unwrap_or("")
                 .replace('/', "-");
             let title = select_text_in(&elem, "h3 a");
             let author = select_text_in(&elem, "div.booknews")
-                .replace("作者：", "").trim().to_string();
+                .replace("作者：", "")
+                .trim()
+                .to_string();
             let update_date = select_text_in(&elem, "div.booknews label.date");
 
             results.push(SearchResult {
@@ -83,7 +88,9 @@ impl Provider for Jpxs123Provider {
         info.book_name = select_text(&doc, "div.infos h1");
         info.author = select_text(&doc, "div.date span:first-child a");
         info.update_time = select_text(&doc, "div.date span:nth-child(2)")
-            .replace("时间：", "").trim().to_string();
+            .replace("时间：", "")
+            .trim()
+            .to_string();
 
         let cover_rel = select_attr(&doc, "div.pic img", "src");
         info.cover_url = if !cover_rel.is_empty() && !cover_rel.starts_with("http") {
@@ -102,8 +109,14 @@ impl Provider for Jpxs123Provider {
                 if title.is_empty() {
                     continue;
                 }
-                let chapter_id = href.rsplit('/').next().unwrap_or("")
-                    .split('.').next().unwrap_or("").to_string();
+                let chapter_id = href
+                    .rsplit('/')
+                    .next()
+                    .unwrap_or("")
+                    .split('.')
+                    .next()
+                    .unwrap_or("")
+                    .to_string();
                 chapters.push(ChapterInfo {
                     title,
                     chapter_id,
@@ -136,7 +149,10 @@ impl Provider for Jpxs123Provider {
         let raw_title = select_text(&doc, "div.read_chapterName h1");
         let book_name = {
             let sel = Selector::parse("div.readTop a").unwrap();
-            doc.select(&sel).last().map(|e| element_text(&e)).unwrap_or_default()
+            doc.select(&sel)
+                .last()
+                .map(|e| element_text(&e))
+                .unwrap_or_default()
         };
         let title = raw_title.replace(&book_name, "").trim().to_string();
 

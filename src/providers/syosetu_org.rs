@@ -80,7 +80,8 @@ impl Provider for SyosetuOrgProvider {
                         if let Ok(a_sel) = Selector::parse("a[href*=\".html\"]") {
                             if let Some(a) = tr.select(&a_sel).next() {
                                 let href = a.value().attr("href").unwrap_or("").trim();
-                                let title = a.text().collect::<Vec<_>>().join("").trim().to_string();
+                                let title =
+                                    a.text().collect::<Vec<_>>().join("").trim().to_string();
                                 if !href.is_empty() {
                                     let chap_id = href
                                         .rsplit('/')
@@ -123,18 +124,12 @@ impl Provider for SyosetuOrgProvider {
         book_id: &str,
         chapter_id: &str,
     ) -> Result<Chapter> {
-        let url = format!(
-            "https://syosetu.org/novel/{}/{}.html",
-            book_id, chapter_id
-        );
+        let url = format!("https://syosetu.org/novel/{}/{}.html", book_id, chapter_id);
         let html_text = client.get(&url).await?;
         let doc = Html::parse_document(&html_text);
 
         // Title from large font span
-        let title = select_text(
-            &doc,
-            "span[style*=\"font-size\"][style*=\"120%\"]",
-        );
+        let title = select_text(&doc, "span[style*=\"font-size\"][style*=\"120%\"]");
 
         // Three-part content: preface, main, postscript
         let mut parts = Vec::new();

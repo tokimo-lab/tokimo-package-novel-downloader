@@ -4,9 +4,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::{select_attr_in, select_text_in};
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::{select_text_in, select_attr_in};
 
 pub struct B520Provider;
 
@@ -57,7 +57,12 @@ impl Provider for B520Provider {
                     continue;
                 }
 
-                let book_id = href.trim_end_matches('/').rsplit('/').next().unwrap_or("").to_string();
+                let book_id = href
+                    .trim_end_matches('/')
+                    .rsplit('/')
+                    .next()
+                    .unwrap_or("")
+                    .to_string();
                 let title = select_text_in(&elem, "td:first-child a");
                 let latest_chapter = select_text_in(&elem, "td:nth-child(2) a");
                 let author = select_text_in(&elem, "td:nth-child(3)");

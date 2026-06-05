@@ -27,10 +27,7 @@ impl Provider for TwkanProvider {
 
     async fn get_book_info(&self, client: &HttpClient, book_id: &str) -> Result<BookInfo> {
         let info_url = format!("https://twkan.com/book/{}.html", book_id);
-        let catalog_url = format!(
-            "https://twkan.com/ajax_novels/chapterlist/{}.html",
-            book_id
-        );
+        let catalog_url = format!("https://twkan.com/ajax_novels/chapterlist/{}.html", book_id);
 
         // Fetch info page
         let mut info_headers = HeaderMap::new();

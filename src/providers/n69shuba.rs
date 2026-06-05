@@ -30,7 +30,10 @@ impl Provider for N69shubaProvider {
         let catalog_url = format!("https://www.69shuba.com/book/{}/", book_id);
 
         let mut headers = HeaderMap::new();
-        headers.insert("Referer", HeaderValue::from_static("https://www.69shuba.com/"));
+        headers.insert(
+            "Referer",
+            HeaderValue::from_static("https://www.69shuba.com/"),
+        );
 
         let info_html = client.get_with_headers(&info_url, headers.clone()).await?;
         let catalog_html = client.get_with_headers(&catalog_url, headers).await?;
@@ -116,10 +119,7 @@ impl Provider for N69shubaProvider {
         book_id: &str,
         chapter_id: &str,
     ) -> Result<Chapter> {
-        let url = format!(
-            "https://www.69shuba.com/txt/{}/{}",
-            book_id, chapter_id
-        );
+        let url = format!("https://www.69shuba.com/txt/{}/{}", book_id, chapter_id);
         let referer = format!("https://www.69shuba.com/book/{}/", chapter_id);
         let mut headers = HeaderMap::new();
         if let Ok(val) = HeaderValue::from_str(&referer) {
@@ -145,7 +145,8 @@ impl Provider for N69shubaProvider {
                 }
 
                 // Skip metadata/ads
-                if cls.contains("txtinfo") || cls.contains("bottom-ad") || eid.contains("txtright") {
+                if cls.contains("txtinfo") || cls.contains("bottom-ad") || eid.contains("txtright")
+                {
                     continue;
                 }
 

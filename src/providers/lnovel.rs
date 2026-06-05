@@ -4,9 +4,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::select_text_in;
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::select_text_in;
 
 pub struct LnovelProvider;
 
@@ -82,7 +82,9 @@ impl Provider for LnovelProvider {
 
         // Parse volumes from accordion items in #volumes
         let mut volumes: Vec<Volume> = Vec::new();
-        if let Ok(vol_sel) = Selector::parse("#volumes div.accordion-item, #volumes div[class*='accordion-item']") {
+        if let Ok(vol_sel) =
+            Selector::parse("#volumes div.accordion-item, #volumes div[class*='accordion-item']")
+        {
             for vol_elem in doc.select(&vol_sel) {
                 let volume_name = select_text_in(&vol_elem, "button, .accordion-header, h2");
 

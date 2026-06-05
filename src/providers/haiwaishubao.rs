@@ -4,9 +4,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::{select_attr_in, select_text_in};
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::{select_text_in, select_attr_in};
 
 pub struct HaiwaishubaoProvider;
 
@@ -101,8 +101,7 @@ impl Provider for HaiwaishubaoProvider {
             info.cover_url = meta_content(&info_doc, "og:image");
             info.update_time = meta_content(&info_doc, "og:novel:update_time");
             info.serial_status = meta_content(&info_doc, "og:novel:status");
-            info.summary = meta_content(&info_doc, "og:description")
-                .replace("&emsp;", "");
+            info.summary = meta_content(&info_doc, "og:description").replace("&emsp;", "");
             info
         };
 

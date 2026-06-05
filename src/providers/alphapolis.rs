@@ -118,11 +118,7 @@ impl Provider for AlphapolisProvider {
                                     continue;
                                 }
 
-                                let chapter_id = href
-                                    .rsplit('/')
-                                    .next()
-                                    .unwrap_or("")
-                                    .to_string();
+                                let chapter_id = href.rsplit('/').next().unwrap_or("").to_string();
 
                                 current_chapters.push(ChapterInfo {
                                     title,

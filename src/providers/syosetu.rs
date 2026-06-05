@@ -44,8 +44,7 @@ impl Provider for SyosetuProvider {
             info.book_name = select_text(&doc, "h1.p-novel__title");
             info.author = select_text(&doc, "div.p-novel__author a");
             if info.author.is_empty() {
-                info.author = select_text(&doc, "div.p-novel__author")
-                    .replace("作者：", "");
+                info.author = select_text(&doc, "div.p-novel__author").replace("作者：", "");
             }
             info.cover_url = meta_content(&doc, "og:image");
             if !info.cover_url.is_empty() && !info.cover_url.starts_with("http") {
@@ -90,10 +89,7 @@ impl Provider for SyosetuProvider {
         book_id: &str,
         chapter_id: &str,
     ) -> Result<Chapter> {
-        let url = format!(
-            "https://ncode.syosetu.com/{}/{}/",
-            book_id, chapter_id
-        );
+        let url = format!("https://ncode.syosetu.com/{}/{}/", book_id, chapter_id);
         let html_text = client.get(&url).await?;
         let doc = Html::parse_document(&html_text);
 

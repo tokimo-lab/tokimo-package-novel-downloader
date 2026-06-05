@@ -92,12 +92,7 @@ impl Provider for GuidayeProvider {
         chapter_id: &str,
     ) -> Result<Chapter> {
         let normalized = Self::normalize_book_id(book_id);
-        let url = format!(
-            "{}/{}/{}.html",
-            self.base_url(),
-            normalized,
-            chapter_id
-        );
+        let url = format!("{}/{}/{}.html", self.base_url(), normalized, chapter_id);
         let html_str = client.get(&url).await?;
         let doc = Html::parse_document(&html_str);
 

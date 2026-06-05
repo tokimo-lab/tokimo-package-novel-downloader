@@ -4,9 +4,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::select_attr_in;
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::select_attr_in;
 
 pub struct PiaotiaProvider;
 
@@ -59,29 +59,47 @@ impl Provider for PiaotiaProvider {
             }
 
             // "https://www.piaotia.com/bookinfo/14/14767.html" -> "14-14767"
-            let book_id = href.trim_end_matches(".html")
-                .rsplit("bookinfo/").next().unwrap_or("")
+            let book_id = href
+                .trim_end_matches(".html")
+                .rsplit("bookinfo/")
+                .next()
+                .unwrap_or("")
                 .replace('/', "-");
             if book_id.is_empty() {
                 continue;
             }
 
-            let title = elem.select(&td_a_sel).next()
-                .map(|e| element_text(&e)).unwrap_or_default();
+            let title = elem
+                .select(&td_a_sel)
+                .next()
+                .map(|e| element_text(&e))
+                .unwrap_or_default();
 
             let td2 = Selector::parse("td:nth-child(2) a").unwrap();
             let td3 = Selector::parse("td:nth-child(3)").unwrap();
             let td4 = Selector::parse("td:nth-child(4)").unwrap();
             let td5 = Selector::parse("td:nth-child(5)").unwrap();
 
-            let latest_chapter = elem.select(&td2).next()
-                .map(|e| element_text(&e)).unwrap_or_default();
-            let author = elem.select(&td3).next()
-                .map(|e| element_text(&e)).unwrap_or_default();
-            let word_count = elem.select(&td4).next()
-                .map(|e| element_text(&e)).unwrap_or_default();
-            let update_date = elem.select(&td5).next()
-                .map(|e| element_text(&e)).unwrap_or_default();
+            let latest_chapter = elem
+                .select(&td2)
+                .next()
+                .map(|e| element_text(&e))
+                .unwrap_or_default();
+            let author = elem
+                .select(&td3)
+                .next()
+                .map(|e| element_text(&e))
+                .unwrap_or_default();
+            let word_count = elem
+                .select(&td4)
+                .next()
+                .map(|e| element_text(&e))
+                .unwrap_or_default();
+            let update_date = elem
+                .select(&td5)
+                .next()
+                .map(|e| element_text(&e))
+                .unwrap_or_default();
 
             results.push(SearchResult {
                 site: self.name().to_string(),
@@ -106,8 +124,12 @@ impl Provider for PiaotiaProvider {
         let info_url = format!("{}/bookinfo/{}.html", Self::BASE_URL, real_id);
         let catalog_url = format!("{}/html/{}/index.html", Self::BASE_URL, real_id);
 
-        let info_html = client.get_with_encoding(&info_url, encoding_rs::GBK).await?;
-        let catalog_html = client.get_with_encoding(&catalog_url, encoding_rs::GBK).await?;
+        let info_html = client
+            .get_with_encoding(&info_url, encoding_rs::GBK)
+            .await?;
+        let catalog_html = client
+            .get_with_encoding(&catalog_url, encoding_rs::GBK)
+            .await?;
 
         let info_doc = Html::parse_document(&info_html);
         let catalog_doc = Html::parse_document(&catalog_html);
@@ -117,26 +139,43 @@ impl Provider for PiaotiaProvider {
         info.book_name = select_text(&info_doc, "span[style] h1");
 
         info.author = extract_td_field(&info_doc, &["作", "者"])
-            .replace("作者：", "").replace('\u{00a0}', "").replace(' ', "")
-            .trim().to_string();
+            .replace("作者：", "")
+            .replace('\u{00a0}', "")
+            .replace(' ', "")
+            .trim()
+            .to_string();
 
         info.word_count = extract_td_field(&info_doc, &["全文长度"])
-            .replace("全文长度：", "").replace('\u{00a0}', "").replace(' ', "")
-            .trim().to_string();
+            .replace("全文长度：", "")
+            .replace('\u{00a0}', "")
+            .replace(' ', "")
+            .trim()
+            .to_string();
 
         info.update_time = extract_td_field(&info_doc, &["最后更新"])
-            .replace("最后更新：", "").replace('\u{00a0}', "").replace(' ', "")
-            .trim().to_string();
+            .replace("最后更新：", "")
+            .replace('\u{00a0}', "")
+            .replace(' ', "")
+            .trim()
+            .to_string();
 
         info.serial_status = extract_td_field(&info_doc, &["文章状态"])
-            .replace("文章状态：", "").replace('\u{00a0}', "").replace(' ', "")
-            .trim().to_string();
+            .replace("文章状态：", "")
+            .replace('\u{00a0}', "")
+            .replace(' ', "")
+            .trim()
+            .to_string();
 
         info.cover_url = select_attr(&info_doc, "td[width=\"80%\"] img", "src");
 
         let summary_text = select_text(&info_doc, "td[width=\"80%\"] div");
         info.summary = if summary_text.contains("内容简介：") {
-            summary_text.split("内容简介：").last().unwrap_or("").trim().to_string()
+            summary_text
+                .split("内容简介：")
+                .last()
+                .unwrap_or("")
+                .trim()
+                .to_string()
         } else {
             summary_text
         };
@@ -154,10 +193,7 @@ impl Provider for PiaotiaProvider {
                 chapters.push(ChapterInfo {
                     title,
                     chapter_id,
-                    url: normalize_url(
-                        &format!("{}/html/{}", Self::BASE_URL, real_id),
-                        href,
-                    ),
+                    url: normalize_url(&format!("{}/html/{}", Self::BASE_URL, real_id), href),
                 });
             }
         }

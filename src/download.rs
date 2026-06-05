@@ -1,9 +1,9 @@
 use anyhow::Result;
-use futures::StreamExt;
 use futures::stream::FuturesUnordered;
+use futures::StreamExt;
 use std::collections::BTreeMap;
-use std::pin::Pin;
 use std::future::Future;
+use std::pin::Pin;
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
@@ -42,9 +42,8 @@ fn build_flat(book_info: &BookInfo) -> Vec<FlatChapter> {
     flat
 }
 
-type ChapterFut<'a> = Pin<Box<
-    dyn Future<Output = (usize, Option<String>, String, Result<Chapter>)> + Send + 'a,
->>;
+type ChapterFut<'a> =
+    Pin<Box<dyn Future<Output = (usize, Option<String>, String, Result<Chapter>)> + Send + 'a>>;
 
 // ── public: streaming download ───────────────────────────────────────────────
 
@@ -72,7 +71,10 @@ pub async fn stream_download(
 
     let book_info = match provider.get_book_info(client, book_id).await {
         Ok(info) => info,
-        Err(e) => { send!(Err(e)); return; }
+        Err(e) => {
+            send!(Err(e));
+            return;
+        }
     };
 
     let flat = build_flat(&book_info);
@@ -86,7 +88,10 @@ pub async fn stream_download(
     }));
 
     if total == 0 {
-        send!(Ok(DownloadEvent::Done { downloaded: 0, failed: 0 }));
+        send!(Ok(DownloadEvent::Done {
+            downloaded: 0,
+            failed: 0
+        }));
         return;
     }
 
@@ -101,7 +106,9 @@ pub async fn stream_download(
         let fc = flat[enqueue_ptr].clone();
         enqueue_ptr += 1;
         futs.push(Box::pin(async move {
-            let result = provider.get_chapter_content(client, book_id, &fc.chapter_id).await;
+            let result = provider
+                .get_chapter_content(client, book_id, &fc.chapter_id)
+                .await;
             (fc.idx, fc.vol_header, fc.title, result)
         }));
     }
@@ -109,7 +116,11 @@ pub async fn stream_download(
     while let Some((ch_idx, vol_header, fallback_title, result)) = futs.next().await {
         let (title, content, ok) = match result {
             Ok(ch) => {
-                let t = if ch.title.is_empty() { fallback_title } else { ch.title };
+                let t = if ch.title.is_empty() {
+                    fallback_title
+                } else {
+                    ch.title
+                };
                 (t, ch.content, true)
             }
             Err(e) => (fallback_title, e.to_string(), false),
@@ -140,7 +151,9 @@ pub async fn stream_download(
             let fc = flat[enqueue_ptr].clone();
             enqueue_ptr += 1;
             futs.push(Box::pin(async move {
-                let result = provider.get_chapter_content(client, book_id, &fc.chapter_id).await;
+                let result = provider
+                    .get_chapter_content(client, book_id, &fc.chapter_id)
+                    .await;
                 (fc.idx, fc.vol_header, fc.title, result)
             }));
         }

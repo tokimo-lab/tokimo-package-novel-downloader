@@ -77,8 +77,9 @@ impl Provider for LinovelibProvider {
 
             info.update_time = meta_content(&info_doc, "og:novel:update_time");
 
-            let vol_id_re = Regex::new(&format!(r"/novel/{}/([^.]+)\.html", regex::escape(book_id)))
-                .unwrap_or_else(|_| Regex::new(r"/novel/\d+/(vol_\d+)\.html").unwrap());
+            let vol_id_re =
+                Regex::new(&format!(r"/novel/{}/([^.]+)\.html", regex::escape(book_id)))
+                    .unwrap_or_else(|_| Regex::new(r"/novel/\d+/(vol_\d+)\.html").unwrap());
 
             let mut vol_ids: Vec<String> = vol_id_re
                 .captures_iter(&info_html)
@@ -95,8 +96,9 @@ impl Provider for LinovelibProvider {
         if vol_ids.is_empty() {
             let catalog_url = format!("{}/novel/{}/catalog", BASE, book_id);
             if let Ok(catalog_html) = client.get(&catalog_url).await {
-                let vol_id_re = Regex::new(&format!(r"/novel/{}/([^.]+)\.html", regex::escape(book_id)))
-                    .unwrap_or_else(|_| Regex::new(r"/novel/\d+/(vol_\d+)\.html").unwrap());
+                let vol_id_re =
+                    Regex::new(&format!(r"/novel/{}/([^.]+)\.html", regex::escape(book_id)))
+                        .unwrap_or_else(|_| Regex::new(r"/novel/\d+/(vol_\d+)\.html").unwrap());
                 let mut found: Vec<String> = vol_id_re
                     .captures_iter(&catalog_html)
                     .filter_map(|cap| cap.get(1).map(|m| m.as_str().to_string()))
@@ -121,25 +123,20 @@ impl Provider for LinovelibProvider {
             if vol_full_title.is_empty() {
                 vol_full_title = select_text(&vol_doc, "h1.book-name");
             }
-            let volume_name = if !info.book_name.is_empty()
-                && vol_full_title.starts_with(&info.book_name)
-            {
-                vol_full_title[info.book_name.len()..]
-                    .trim_start_matches(|c: char| " ：:·-—".contains(c))
-                    .to_string()
-            } else {
-                vol_full_title
-            };
+            let volume_name =
+                if !info.book_name.is_empty() && vol_full_title.starts_with(&info.book_name) {
+                    vol_full_title[info.book_name.len()..]
+                        .trim_start_matches(|c: char| " ：:·-—".contains(c))
+                        .to_string()
+                } else {
+                    vol_full_title
+                };
 
             let mut chapters = Vec::new();
             if let Ok(sel) = Selector::parse("div.book-new-chapter a[href]") {
                 for a_elem in vol_doc.select(&sel) {
                     let title = element_text(&a_elem);
-                    let href = a_elem
-                        .value()
-                        .attr("href")
-                        .unwrap_or("")
-                        .to_string();
+                    let href = a_elem.value().attr("href").unwrap_or("").to_string();
                     // /novel/{book_id}/{chapter_id}.html -> chapter_id
                     let chapter_id = href
                         .rsplit('/')

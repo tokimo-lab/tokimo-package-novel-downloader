@@ -98,15 +98,11 @@ impl Provider for Shu111Provider {
         book_id: &str,
         chapter_id: &str,
     ) -> Result<Chapter> {
-        let url = format!(
-            "http://www.shu111.com/book/{}/{}.html",
-            book_id, chapter_id
-        );
+        let url = format!("http://www.shu111.com/book/{}/{}.html", book_id, chapter_id);
         let html_text = client.get(&url).await?;
         let doc = Html::parse_document(&html_text);
 
-        let title = select_text(&doc, "h1.readTitle, h1")
-            .replace('\u{00a0}', " ");
+        let title = select_text(&doc, "h1.readTitle, h1").replace('\u{00a0}', " ");
 
         let mut content = String::new();
         if let Ok(sel) = Selector::parse("#htmlContent") {

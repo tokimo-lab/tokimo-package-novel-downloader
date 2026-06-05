@@ -31,10 +31,7 @@ impl Biquge1Provider {
 
     fn chapter_url(&self, book_id: &str, chapter_id: &str, page: usize) -> String {
         if page > 1 {
-            format!(
-                "{}/{}/{}_{}.html",
-                self.base_url, book_id, chapter_id, page
-            )
+            format!("{}/{}/{}_{}.html", self.base_url, book_id, chapter_id, page)
         } else {
             format!("{}/{}/{}.html", self.base_url, book_id, chapter_id)
         }
@@ -65,7 +62,9 @@ impl Biquge1Provider {
         let mut chapters = Vec::new();
 
         // Try book_list2 pattern first
-        if let Ok(sel) = Selector::parse("div.book_list2 a[href], div.listmain a[href], #list a[href], .zjlist a[href]") {
+        if let Ok(sel) = Selector::parse(
+            "div.book_list2 a[href], div.listmain a[href], #list a[href], .zjlist a[href]",
+        ) {
             for elem in doc.select(&sel) {
                 if let Some(href) = elem.value().attr("href") {
                     let title = element_text(&elem);
@@ -265,7 +264,12 @@ impl Provider for Biquge2Provider {
             info.book_name = select_text(&doc, "h1");
         }
         info.author = select_text(&doc, "#info p:first-of-type");
-        info.author = info.author.replace("作    者：", "").replace("作者：", "").trim().to_string();
+        info.author = info
+            .author
+            .replace("作    者：", "")
+            .replace("作者：", "")
+            .trim()
+            .to_string();
         info.summary = select_text(&doc, "#intro");
         info.cover_url = select_attr(&doc, "#fmimg img", "src");
 
@@ -368,7 +372,9 @@ impl Provider for Biquge3Provider {
         let doc = Html::parse_document(&html);
         let mut results = Vec::new();
 
-        if let Ok(sel) = Selector::parse(".result-list .result-item, .search-list li, .novelslist2 li") {
+        if let Ok(sel) =
+            Selector::parse(".result-list .result-item, .search-list li, .novelslist2 li")
+        {
             for elem in doc.select(&sel).take(limit) {
                 let title = select_text_in(&elem, "a, .s2 a, h3 a");
                 let author = select_text_in(&elem, ".author, .s4, span.s4");
@@ -507,7 +513,9 @@ impl Provider for Biquge4Provider {
         info.author = select_text(&doc, ".bq_intro span, .author, .info span");
 
         let mut chapters = Vec::new();
-        if let Ok(sel) = Selector::parse("ul li a[href], .chapterlist a[href], #chapterlist a[href]") {
+        if let Ok(sel) =
+            Selector::parse("ul li a[href], .chapterlist a[href], #chapterlist a[href]")
+        {
             for elem in doc.select(&sel) {
                 if let Some(href) = elem.value().attr("href") {
                     let title = element_text(&elem);
@@ -554,14 +562,21 @@ impl Provider for Biquge4Provider {
         let title = select_text(&doc, "h1, .title");
 
         // Try regex-based content extraction for malformed HTML
-        let content = if let Some(cap) = regex::Regex::new(r#"id="novelcontent"[^>]*>([\s\S]*?)</div>"#)
-            .ok()
-            .and_then(|re| re.captures(&html))
+        let content = if let Some(cap) =
+            regex::Regex::new(r#"id="novelcontent"[^>]*>([\s\S]*?)</div>"#)
+                .ok()
+                .and_then(|re| re.captures(&html))
         {
             html_to_text(&cap[1])
         } else {
             let mut c = String::new();
-            for sel_str in &["#novelcontent", "#content", "#chaptercontent", "article", ".content"] {
+            for sel_str in &[
+                "#novelcontent",
+                "#content",
+                "#chaptercontent",
+                "article",
+                ".content",
+            ] {
                 if let Ok(sel) = Selector::parse(sel_str) {
                     if let Some(elem) = doc.select(&sel).next() {
                         c = html_to_text(&elem.inner_html());

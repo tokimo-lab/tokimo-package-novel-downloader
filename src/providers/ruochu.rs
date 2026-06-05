@@ -31,7 +31,10 @@ impl Provider for RuochuProvider {
         {
             let doc = Html::parse_document(&html_str);
 
-            info.book_name = select_text(&doc, "div.pattern-cover-detail h1 span, div[class*='pattern-cover-detail'] h1 span");
+            info.book_name = select_text(
+                &doc,
+                "div.pattern-cover-detail h1 span, div[class*='pattern-cover-detail'] h1 span",
+            );
             if info.book_name.is_empty() {
                 info.book_name = select_text(&doc, "h1");
             }
@@ -42,18 +45,22 @@ impl Provider for RuochuProvider {
                     if text.contains("作者") {
                         if let Some(pos) = text.find("作者") {
                             let after = &text[pos + "作者".len()..];
-                            let after = after.trim_start_matches('：').trim_start_matches(':').trim();
-                            info.author = after
-                                .split_whitespace()
-                                .next()
-                                .unwrap_or(after)
-                                .to_string();
+                            let after = after
+                                .trim_start_matches('：')
+                                .trim_start_matches(':')
+                                .trim();
+                            info.author =
+                                after.split_whitespace().next().unwrap_or(after).to_string();
                         }
                     }
                 }
             }
 
-            info.cover_url = select_attr(&doc, "div.pic img.book-cover, img[class*='book-cover']", "src");
+            info.cover_url = select_attr(
+                &doc,
+                "div.pic img.book-cover, img[class*='book-cover']",
+                "src",
+            );
             if !info.cover_url.is_empty() && !info.cover_url.starts_with("http") {
                 info.cover_url = normalize_url(self.base_url(), &info.cover_url);
             }
@@ -70,7 +77,8 @@ impl Provider for RuochuProvider {
 
             info.update_time = select_text(&doc, "span.time, span[class*='time']");
 
-            info.summary = select_text(&doc, "div.summary pre.note, div[class*='summary'] pre.note");
+            info.summary =
+                select_text(&doc, "div.summary pre.note, div[class*='summary'] pre.note");
             if info.summary.is_empty() {
                 info.summary = select_text(&doc, "div.summary, div[class*='summary']");
             }
@@ -82,7 +90,9 @@ impl Provider for RuochuProvider {
         let catalog_doc = Html::parse_document(&catalog_html);
 
         let mut chapters = Vec::new();
-        if let Ok(sel) = Selector::parse("div.chapter-list ul li a[href], div[class*='chapter-list'] ul li a[href]") {
+        if let Ok(sel) = Selector::parse(
+            "div.chapter-list ul li a[href], div[class*='chapter-list'] ul li a[href]",
+        ) {
             for elem in catalog_doc.select(&sel) {
                 if let Some(href) = elem.value().attr("href") {
                     let title = element_text(&elem);

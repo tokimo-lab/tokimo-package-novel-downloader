@@ -4,9 +4,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::{select_attr_in, select_text_in};
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::{select_text_in, select_attr_in};
 
 pub struct CzbooksProvider;
 
@@ -34,10 +34,7 @@ impl Provider for CzbooksProvider {
         keyword: &str,
         limit: usize,
     ) -> Result<Vec<SearchResult>> {
-        let url = format!(
-            "https://czbooks.net/s/{}",
-            urlencoding::encode(keyword)
-        );
+        let url = format!("https://czbooks.net/s/{}", urlencoding::encode(keyword));
         let html_str = client.get(&url).await?;
         let doc = Html::parse_document(&html_str);
         let mut results = Vec::new();

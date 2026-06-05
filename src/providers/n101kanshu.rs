@@ -4,9 +4,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::{select_attr_in, select_text_in};
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::{select_text_in, select_attr_in};
 
 pub struct N101kanshuProvider;
 
@@ -36,10 +36,10 @@ impl Provider for N101kanshuProvider {
         limit: usize,
     ) -> Result<Vec<SearchResult>> {
         let html = client
-            .post_form(Self::SEARCH_URL, &[
-                ("searchkey", keyword),
-                ("searchtype", "all"),
-            ])
+            .post_form(
+                Self::SEARCH_URL,
+                &[("searchkey", keyword), ("searchtype", "all")],
+            )
             .await?;
         let doc = Html::parse_document(&html);
         let mut results = Vec::new();
@@ -51,9 +51,15 @@ impl Provider for N101kanshuProvider {
                 continue;
             }
 
-            let book_id = book_url.trim_end_matches('/')
-                .rsplit('/').next().unwrap_or("")
-                .split('.').next().unwrap_or("").to_string();
+            let book_id = book_url
+                .trim_end_matches('/')
+                .rsplit('/')
+                .next()
+                .unwrap_or("")
+                .split('.')
+                .next()
+                .unwrap_or("")
+                .to_string();
 
             let mut cover_url = select_attr_in(&elem, "img", "data-src");
             if cover_url.is_empty() {
@@ -83,7 +89,11 @@ impl Provider for N101kanshuProvider {
 
     async fn get_book_info(&self, client: &HttpClient, book_id: &str) -> Result<BookInfo> {
         let info_url = format!("{}/book/{}.html", Self::BASE_URL, book_id);
-        let catalog_url = format!("{}/ajax_novels/chapterlist/{}.html", Self::BASE_URL, book_id);
+        let catalog_url = format!(
+            "{}/ajax_novels/chapterlist/{}.html",
+            Self::BASE_URL,
+            book_id
+        );
 
         let info_html = client.get(&info_url).await?;
         let catalog_html = client.get(&catalog_url).await?;
@@ -125,8 +135,14 @@ impl Provider for N101kanshuProvider {
                 if href.is_empty() {
                     continue;
                 }
-                let chapter_id = href.rsplit('/').next().unwrap_or("")
-                    .split('.').next().unwrap_or("").to_string();
+                let chapter_id = href
+                    .rsplit('/')
+                    .next()
+                    .unwrap_or("")
+                    .split('.')
+                    .next()
+                    .unwrap_or("")
+                    .to_string();
                 chapters.push(ChapterInfo {
                     title,
                     chapter_id,

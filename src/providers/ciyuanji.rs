@@ -69,7 +69,11 @@ impl Provider for CiyuanjiProvider {
                     .get("bookId")
                     .and_then(|v| v.as_u64())
                     .map(|v| v.to_string())
-                    .or_else(|| item.get("bookId").and_then(|v| v.as_str()).map(|s| s.to_string()))
+                    .or_else(|| {
+                        item.get("bookId")
+                            .and_then(|v| v.as_str())
+                            .map(|s| s.to_string())
+                    })
                     .unwrap_or_default();
                 let title = item
                     .get("bookName")
@@ -179,7 +183,10 @@ impl Provider for CiyuanjiProvider {
                     .and_then(|v| v.as_str())
                     .unwrap_or("")
                     .to_string();
-                let volume_sort = ch.get("volumeSortNum").and_then(|v| v.as_i64()).unwrap_or(0);
+                let volume_sort = ch
+                    .get("volumeSortNum")
+                    .and_then(|v| v.as_i64())
+                    .unwrap_or(0);
                 let chapter_name = ch
                     .get("chapterName")
                     .and_then(|v| v.as_str())

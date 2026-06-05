@@ -8,17 +8,17 @@ pub mod mangg_search;
 // Biquge group
 pub mod biquge5;
 pub mod biquguo;
+pub mod blqudu;
 pub mod bxwx9;
 pub mod ciluke;
 pub mod fsshu;
 pub mod ktshu;
-pub mod n37yue;
-pub mod mangg_net;
-pub mod blqudu;
 pub mod lewenn;
-pub mod n23ddw;
-pub mod n69hao;
+pub mod mangg_net;
 pub mod mjyhb;
+pub mod n23ddw;
+pub mod n37yue;
+pub mod n69hao;
 pub mod shauthor;
 
 // Search providers A
@@ -48,25 +48,25 @@ pub mod quanben5;
 pub mod shuhaige;
 
 // Search providers C
+pub mod kadokado;
+pub mod linovel;
+pub mod n8novel;
 pub mod tongrenquan;
 pub mod tongrenshe;
 pub mod trxs;
 pub mod ttkan;
 pub mod uaa;
 pub mod xiguashuwu;
-pub mod yodu;
 pub mod xshbook;
-pub mod kadokado;
-pub mod n8novel;
-pub mod linovel;
+pub mod yodu;
 
 // Complex providers
-pub mod qidian;
-pub mod linovelib;
-pub mod wenku8;
-pub mod sfacg;
 pub mod ciweimao;
 pub mod fanqienovel;
+pub mod linovelib;
+pub mod qidian;
+pub mod sfacg;
+pub mod wenku8;
 
 // No-search providers A
 pub mod akatsuki_novels;
@@ -86,6 +86,9 @@ pub mod shaoniandream;
 pub mod shencou;
 
 // No-search providers B
+pub mod n17k;
+pub mod n69shuba;
+pub mod qqbook;
 pub mod shu111;
 pub mod syosetu;
 pub mod syosetu18;
@@ -98,9 +101,6 @@ pub mod wxsck;
 pub mod yamibo;
 pub mod yibige;
 pub mod zhenhunxiaoshuo;
-pub mod n17k;
-pub mod n69shuba;
-pub mod qqbook;
 
 /// Get all available providers
 pub fn get_all_providers() -> Vec<Box<dyn Provider>> {

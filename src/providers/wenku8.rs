@@ -44,10 +44,7 @@ impl Provider for Wenku8Provider {
         let prefix = compute_prefix(book_id);
 
         let info_url = format!("{}/book/{}.htm", BASE, book_id);
-        let catalog_url = format!(
-            "{}/novel/{}/{}/index.htm",
-            BASE, prefix, book_id
-        );
+        let catalog_url = format!("{}/novel/{}/{}/index.htm", BASE, prefix, book_id);
 
         // Wenku8 uses GBK encoding
         let info_html = client
@@ -87,8 +84,7 @@ impl Provider for Wenku8Provider {
             for elem in info_doc.select(&sel) {
                 let text = element_text(&elem);
                 if text.contains("文章状态") {
-                    info.serial_status =
-                        text.replace("文章状态：", "").trim().to_string();
+                    info.serial_status = text.replace("文章状态：", "").trim().to_string();
                     break;
                 }
             }
@@ -99,8 +95,7 @@ impl Provider for Wenku8Provider {
             for elem in info_doc.select(&sel) {
                 let text = element_text(&elem);
                 if text.contains("全文长度") {
-                    info.word_count =
-                        text.replace("全文长度：", "").trim().to_string();
+                    info.word_count = text.replace("全文长度：", "").trim().to_string();
                     break;
                 }
             }
@@ -111,8 +106,7 @@ impl Provider for Wenku8Provider {
             for elem in info_doc.select(&sel) {
                 let text = element_text(&elem);
                 if text.contains("最后更新") {
-                    info.update_time =
-                        text.replace("最后更新：", "").trim().to_string();
+                    info.update_time = text.replace("最后更新：", "").trim().to_string();
                     break;
                 }
             }
@@ -167,20 +161,12 @@ impl Provider for Wenku8Provider {
                 if let Ok(ccss_sel) = Selector::parse("td.ccss a[href]") {
                     for a_elem in tr.select(&ccss_sel) {
                         let title = element_text(&a_elem);
-                        let href = a_elem
-                            .value()
-                            .attr("href")
-                            .unwrap_or("")
-                            .to_string();
+                        let href = a_elem.value().attr("href").unwrap_or("").to_string();
                         if title.is_empty() || href.is_empty() {
                             continue;
                         }
                         // href like "12345.htm" -> chapter_id "12345"
-                        let chapter_id = href
-                            .split('.')
-                            .next()
-                            .unwrap_or("")
-                            .to_string();
+                        let chapter_id = href.split('.').next().unwrap_or("").to_string();
                         current_chapters.push(ChapterInfo {
                             title,
                             chapter_id: chapter_id.clone(),
@@ -217,13 +203,8 @@ impl Provider for Wenku8Provider {
         chapter_id: &str,
     ) -> Result<Chapter> {
         let prefix = compute_prefix(book_id);
-        let url = format!(
-            "{}/novel/{}/{}/{}.htm",
-            BASE, prefix, book_id, chapter_id
-        );
-        let html_str = client
-            .get_with_encoding(&url, encoding_rs::GBK)
-            .await?;
+        let url = format!("{}/novel/{}/{}/{}.htm", BASE, prefix, book_id, chapter_id);
+        let html_str = client.get_with_encoding(&url, encoding_rs::GBK).await?;
         let doc = Html::parse_document(&html_str);
 
         let title = select_text(&doc, r#"div#title"#);

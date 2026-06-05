@@ -24,11 +24,7 @@ impl Provider for AkatsukiNovelsProvider {
     }
 
     async fn get_book_info(&self, client: &HttpClient, book_id: &str) -> Result<BookInfo> {
-        let url = format!(
-            "{}/stories/index/novel_id~{}",
-            self.base_url(),
-            book_id
-        );
+        let url = format!("{}/stories/index/novel_id~{}", self.base_url(), book_id);
         let html_str = client.get(&url).await?;
         let doc = Html::parse_document(&html_str);
 

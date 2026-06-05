@@ -9,7 +9,9 @@ pub struct HttpClient {
 
 impl Clone for HttpClient {
     fn clone(&self) -> Self {
-        Self { client: self.client.clone() }
+        Self {
+            client: self.client.clone(),
+        }
     }
 }
 
@@ -22,8 +24,16 @@ impl HttpClient {
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             ),
         );
-        headers.insert(ACCEPT, HeaderValue::from_static("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"));
-        headers.insert(ACCEPT_LANGUAGE, HeaderValue::from_static("zh-CN,zh;q=0.9,en;q=0.8"));
+        headers.insert(
+            ACCEPT,
+            HeaderValue::from_static(
+                "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            ),
+        );
+        headers.insert(
+            ACCEPT_LANGUAGE,
+            HeaderValue::from_static("zh-CN,zh;q=0.9,en;q=0.8"),
+        );
 
         let client = reqwest::Client::builder()
             .default_headers(headers)
@@ -64,11 +74,7 @@ impl HttpClient {
     }
 
     /// Fetch a URL with custom headers
-    pub async fn get_with_headers(
-        &self,
-        url: &str,
-        headers: HeaderMap,
-    ) -> Result<String> {
+    pub async fn get_with_headers(&self, url: &str, headers: HeaderMap) -> Result<String> {
         let resp = self.client.get(url).headers(headers).send().await?;
         let content_type = resp
             .headers()
@@ -81,11 +87,7 @@ impl HttpClient {
     }
 
     /// POST request with form data
-    pub async fn post_form(
-        &self,
-        url: &str,
-        form: &[(&str, &str)],
-    ) -> Result<String> {
+    pub async fn post_form(&self, url: &str, form: &[(&str, &str)]) -> Result<String> {
         let resp = self.client.post(url).form(form).send().await?;
         let content_type = resp
             .headers()
@@ -148,7 +150,10 @@ impl HttpClient {
         if content_type.contains("utf-8") || content_type.contains("utf8") {
             return Some(UTF_8);
         }
-        if content_type.contains("gbk") || content_type.contains("gb2312") || content_type.contains("gb18030") {
+        if content_type.contains("gbk")
+            || content_type.contains("gb2312")
+            || content_type.contains("gb18030")
+        {
             return Some(GBK);
         }
         if content_type.contains("big5") {

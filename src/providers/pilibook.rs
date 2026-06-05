@@ -39,15 +39,25 @@ impl Provider for PilibookProvider {
         {
             let doc = Html::parse_document(&html_str);
 
-            info.book_name = select_text(&doc, "h2.works-intro-title strong, h2[class*='works-intro-title'] strong");
+            info.book_name = select_text(
+                &doc,
+                "h2.works-intro-title strong, h2[class*='works-intro-title'] strong",
+            );
             if info.book_name.is_empty() {
                 info.book_name = select_text(&doc, "h2.works-intro-title, h1");
             }
 
             info.author = select_text(&doc, "a.works-author-name, a[class*='works-author-name']");
-            info.serial_status = select_text(&doc, "label.works-intro-status, label[class*='works-intro-status']");
+            info.serial_status = select_text(
+                &doc,
+                "label.works-intro-status, label[class*='works-intro-status']",
+            );
 
-            let mut cover = select_attr(&doc, "div.works-cover img, div[class*='works-cover'] img", "src");
+            let mut cover = select_attr(
+                &doc,
+                "div.works-cover img, div[class*='works-cover'] img",
+                "src",
+            );
             if cover.starts_with("//") {
                 cover = format!("https:{}", cover);
             } else if !cover.is_empty() && !cover.starts_with("http") {
@@ -57,11 +67,15 @@ impl Provider for PilibookProvider {
 
             info.summary = select_text(&doc, "p.works-intro-short, p[class*='works-intro-short']");
 
-            if let Ok(sel) = Selector::parse("ul.works-chapter-log li, ul[class*='works-chapter-log'] li") {
+            if let Ok(sel) =
+                Selector::parse("ul.works-chapter-log li, ul[class*='works-chapter-log'] li")
+            {
                 for elem in doc.select(&sel) {
                     let text = element_text(&elem);
                     if text.contains("最新章") {
-                        if let Ok(span_sel) = Selector::parse("span.ui-text-gray6, span[class*='ui-text-gray6']") {
+                        if let Ok(span_sel) =
+                            Selector::parse("span.ui-text-gray6, span[class*='ui-text-gray6']")
+                        {
                             if let Some(span) = elem.select(&span_sel).next() {
                                 info.update_time = element_text(&span);
                             }
@@ -82,7 +96,9 @@ impl Provider for PilibookProvider {
         let mut current_volume_name = String::new();
         let mut current_chapters: Vec<ChapterInfo> = Vec::new();
 
-        if let Ok(sel) = Selector::parse("div.works-chapter-list-wr > *, div[class*='works-chapter-list-wr'] > *") {
+        if let Ok(sel) = Selector::parse(
+            "div.works-chapter-list-wr > *, div[class*='works-chapter-list-wr'] > *",
+        ) {
             for elem in catalog_doc.select(&sel) {
                 let class = elem.value().attr("class").unwrap_or("");
 
@@ -202,7 +218,10 @@ impl Provider for PilibookProvider {
         let doc = Html::parse_document(&html_str);
 
         // Title from j_chapterName span
-        let mut title = select_text(&doc, "h3.j_chapterName span, h3[class*='j_chapterName'] span");
+        let mut title = select_text(
+            &doc,
+            "h3.j_chapterName span, h3[class*='j_chapterName'] span",
+        );
         if title.is_empty() {
             title = select_text(&doc, "h3.j_chapterName, h1");
         }

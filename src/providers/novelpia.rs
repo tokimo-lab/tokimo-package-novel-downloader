@@ -111,10 +111,7 @@ impl Provider for NovelpiaProvider {
                 ("page", page.to_string()),
                 ("sort", "1".to_string()),
             ];
-            let form_refs: Vec<(&str, &str)> = form
-                .iter()
-                .map(|(k, v)| (*k, v.as_str()))
-                .collect();
+            let form_refs: Vec<(&str, &str)> = form.iter().map(|(k, v)| (*k, v.as_str())).collect();
             let ep_html = client.post_form(&ep_url, &form_refs).await?;
             let doc = Html::parse_document(&ep_html);
 

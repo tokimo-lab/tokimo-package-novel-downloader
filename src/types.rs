@@ -68,10 +68,7 @@ pub enum DownloadEvent {
         error: String,
     },
     /// Last event: final counts.
-    Done {
-        downloaded: usize,
-        failed: usize,
-    },
+    Done { downloaded: usize, failed: usize },
 }
 
 impl Default for BookInfo {

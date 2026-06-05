@@ -4,9 +4,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::{select_attr_in, select_text_in};
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::{select_text_in, select_attr_in};
 
 pub struct UaaProvider;
 
@@ -63,8 +63,7 @@ impl Provider for UaaProvider {
                 };
                 let title = select_text_in(&elem, "div.title a");
                 let author = select_text_in(&elem, "div.info_box a");
-                let latest_chapter =
-                    select_text_in(&elem, "div.update_state_box span.update_desc");
+                let latest_chapter = select_text_in(&elem, "div.update_state_box span.update_desc");
                 let word_count = select_text_in(&elem, "div.other_box span");
 
                 results.push(SearchResult {
@@ -90,8 +89,7 @@ impl Provider for UaaProvider {
         let mut info = BookInfo::default();
         info.book_name = select_text(&doc, "div.info_box h1");
         info.cover_url = select_attr(&doc, "img.cover", "src");
-        info.serial_status = select_text(&doc, "span.update_state")
-            .replace("状态：", "");
+        info.serial_status = select_text(&doc, "span.update_state").replace("状态：", "");
 
         // Author: find <div class="item"> containing "作者" and get its <a>
         if let Ok(sel) = Selector::parse("div.item") {
@@ -109,8 +107,7 @@ impl Provider for UaaProvider {
         }
 
         // Summary
-        info.summary = select_text(&doc, "div.brief_box div.txt")
-            .replace("小说简介：", "");
+        info.summary = select_text(&doc, "div.brief_box div.txt").replace("小说简介：", "");
 
         // Volumes & Chapters
         let mut volumes: Vec<Volume> = Vec::new();
@@ -158,10 +155,7 @@ impl Provider for UaaProvider {
                                 let chapter_id = if href.contains("id=") {
                                     href.split("id=").last().unwrap_or("").to_string()
                                 } else {
-                                    href.rsplit('/')
-                                        .next()
-                                        .unwrap_or("")
-                                        .to_string()
+                                    href.rsplit('/').next().unwrap_or("").to_string()
                                 };
                                 current_chapters.push(ChapterInfo {
                                     title,
@@ -190,10 +184,7 @@ impl Provider for UaaProvider {
                                     let chapter_id = if href.contains("id=") {
                                         href.split("id=").last().unwrap_or("").to_string()
                                     } else {
-                                        href.rsplit('/')
-                                            .next()
-                                            .unwrap_or("")
-                                            .to_string()
+                                        href.rsplit('/').next().unwrap_or("").to_string()
                                     };
                                     current_chapters.push(ChapterInfo {
                                         title,

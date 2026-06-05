@@ -118,12 +118,7 @@ impl Provider for ManggComProvider {
         book_id: &str,
         chapter_id: &str,
     ) -> Result<Chapter> {
-        let url = format!(
-            "{}/{}/{}.html",
-            self.base_url(),
-            book_id,
-            chapter_id
-        );
+        let url = format!("{}/{}/{}.html", self.base_url(), book_id, chapter_id);
         let html_str = client.get(&url).await?;
         let doc = Html::parse_document(&html_str);
 
@@ -141,10 +136,7 @@ impl Provider for ManggComProvider {
         }
 
         // Filter ad lines
-        let filtered: Vec<&str> = content
-            .lines()
-            .filter(|line| !is_ad_line(line))
-            .collect();
+        let filtered: Vec<&str> = content.lines().filter(|line| !is_ad_line(line)).collect();
         let content = filtered.join("\n");
 
         Ok(Chapter {
@@ -157,8 +149,13 @@ impl Provider for ManggComProvider {
 
 fn is_ad_line(text: &str) -> bool {
     let ad_keywords = [
-        "mangg.com", "追书网", "本站域名", "请记住",
-        "最新章节", "请收藏", "加入书架",
+        "mangg.com",
+        "追书网",
+        "本站域名",
+        "请记住",
+        "最新章节",
+        "请收藏",
+        "加入书架",
     ];
     let lower = text.to_lowercase();
     ad_keywords.iter().any(|kw| lower.contains(kw))

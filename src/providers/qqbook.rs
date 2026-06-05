@@ -146,10 +146,7 @@ impl Provider for QqbookProvider {
         book_id: &str,
         chapter_id: &str,
     ) -> Result<Chapter> {
-        let url = format!(
-            "https://book.qq.com/book-read/{}/{}/",
-            book_id, chapter_id
-        );
+        let url = format!("https://book.qq.com/book-read/{}/{}/", book_id, chapter_id);
         let html_text = client.get(&url).await?;
 
         // Try to extract from NUXT data

@@ -4,9 +4,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::select_attr_in;
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::select_attr_in;
 
 pub struct N71geProvider;
 
@@ -36,11 +36,10 @@ impl Provider for N71geProvider {
         limit: usize,
     ) -> Result<Vec<SearchResult>> {
         let html = client
-            .post_form(Self::SEARCH_URL, &[
-                ("s", keyword),
-                ("action", "login"),
-                ("submit", " 搜 索 "),
-            ])
+            .post_form(
+                Self::SEARCH_URL,
+                &[("s", keyword), ("action", "login"), ("submit", " 搜 索 ")],
+            )
             .await?;
         let doc = Html::parse_document(&html);
         let mut results = Vec::new();
@@ -55,22 +54,37 @@ impl Provider for N71geProvider {
             }
 
             let book_id = href.trim_matches('/').to_string();
-            let title = elem.select(&td_a_sel).next()
-                .map(|e| element_text(&e)).unwrap_or_default();
+            let title = elem
+                .select(&td_a_sel)
+                .next()
+                .map(|e| element_text(&e))
+                .unwrap_or_default();
 
             let td_sel2 = Selector::parse("td:nth-child(2) a").unwrap();
             let td_sel3 = Selector::parse("td:nth-child(3)").unwrap();
             let td_sel4 = Selector::parse("td:nth-child(4)").unwrap();
             let td_sel5 = Selector::parse("td:nth-child(5)").unwrap();
 
-            let latest_chapter = elem.select(&td_sel2).next()
-                .map(|e| element_text(&e)).unwrap_or_default();
-            let author = elem.select(&td_sel3).next()
-                .map(|e| element_text(&e)).unwrap_or_default();
-            let word_count = elem.select(&td_sel4).next()
-                .map(|e| element_text(&e)).unwrap_or_default();
-            let update_date = elem.select(&td_sel5).next()
-                .map(|e| element_text(&e)).unwrap_or_default();
+            let latest_chapter = elem
+                .select(&td_sel2)
+                .next()
+                .map(|e| element_text(&e))
+                .unwrap_or_default();
+            let author = elem
+                .select(&td_sel3)
+                .next()
+                .map(|e| element_text(&e))
+                .unwrap_or_default();
+            let word_count = elem
+                .select(&td_sel4)
+                .next()
+                .map(|e| element_text(&e))
+                .unwrap_or_default();
+            let update_date = elem
+                .select(&td_sel5)
+                .next()
+                .map(|e| element_text(&e))
+                .unwrap_or_default();
 
             results.push(SearchResult {
                 site: self.name().to_string(),
@@ -132,8 +146,14 @@ impl Provider for N71geProvider {
                 if title.is_empty() {
                     continue;
                 }
-                let chapter_id = href.rsplit('/').next().unwrap_or("")
-                    .split('.').next().unwrap_or("").to_string();
+                let chapter_id = href
+                    .rsplit('/')
+                    .next()
+                    .unwrap_or("")
+                    .split('.')
+                    .next()
+                    .unwrap_or("")
+                    .to_string();
                 chapters.push(ChapterInfo {
                     title,
                     chapter_id,
@@ -166,7 +186,13 @@ impl Provider for N71geProvider {
             let url = if page == 1 {
                 format!("{}/{}/{}.html", Self::BASE_URL, book_id, chapter_id)
             } else {
-                format!("{}/{}/{}_{}.html", Self::BASE_URL, book_id, chapter_id, page)
+                format!(
+                    "{}/{}/{}_{}.html",
+                    Self::BASE_URL,
+                    book_id,
+                    chapter_id,
+                    page
+                )
             };
 
             let html = client.get(&url).await?;

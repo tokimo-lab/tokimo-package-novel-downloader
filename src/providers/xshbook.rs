@@ -17,10 +17,7 @@ pub fn provider() -> Box<dyn Provider> {
 const BASE_URL: &str = "https://www.xshbook.com";
 
 fn is_ad_line(text: &str) -> bool {
-    let ad_patterns = [
-        "谨记我们的网址",
-        "温馨提示",
-    ];
+    let ad_patterns = ["谨记我们的网址", "温馨提示"];
     for pat in &ad_patterns {
         if text.contains(pat) {
             return true;
@@ -130,8 +127,7 @@ impl Provider for XshbookProvider {
             title = select_text(&doc, "div.con_top");
         }
 
-        let inline_ad_re =
-            Regex::new(r"(本文搜|搜索[:：]?)\s*.*?\s*(免费阅读|本文免费阅读)").ok();
+        let inline_ad_re = Regex::new(r"(本文搜|搜索[:：]?)\s*.*?\s*(免费阅读|本文免费阅读)").ok();
 
         let mut paragraphs = Vec::new();
         if let Ok(sel) = Selector::parse("#content p") {

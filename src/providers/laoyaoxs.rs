@@ -4,9 +4,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::{select_attr_in, select_text_in};
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::{select_text_in, select_attr_in};
 
 pub struct LaoyaoxsProvider;
 
@@ -54,8 +54,14 @@ impl Provider for LaoyaoxsProvider {
                 continue;
             }
 
-            let book_id = href.rsplit('/').next().unwrap_or("")
-                .split('.').next().unwrap_or("").to_string();
+            let book_id = href
+                .rsplit('/')
+                .next()
+                .unwrap_or("")
+                .split('.')
+                .next()
+                .unwrap_or("")
+                .to_string();
 
             let mut cover_url = select_attr_in(&elem, "a.book_cov img", "data-original");
             if cover_url.is_empty() {
@@ -114,7 +120,8 @@ impl Provider for LaoyaoxsProvider {
         }
 
         info.update_time = meta_content(&info_doc, "og:novel:update_time")
-            .replace('\u{00a0}', " ").replace('\u{3000}', " ");
+            .replace('\u{00a0}', " ")
+            .replace('\u{3000}', " ");
 
         info.summary = select_text(&info_doc, "p.intro");
 
@@ -123,7 +130,9 @@ impl Provider for LaoyaoxsProvider {
         let sel = Selector::parse("div.read dl#newlist dd a:first-child").unwrap();
         for elem in catalog_doc.select(&sel) {
             if let Some(href) = elem.value().attr("href") {
-                let title = elem.value().attr("title")
+                let title = elem
+                    .value()
+                    .attr("title")
                     .map(|t| t.trim().to_string())
                     .filter(|t| !t.is_empty())
                     .unwrap_or_else(|| element_text(&elem));
@@ -161,7 +170,11 @@ impl Provider for LaoyaoxsProvider {
 
         let title = {
             let t = select_text(&doc, "div#chapter-name h2");
-            if t.is_empty() { select_text(&doc, "h2") } else { t }
+            if t.is_empty() {
+                select_text(&doc, "h2")
+            } else {
+                t
+            }
         };
 
         // Parse content from dd[data-id] elements, sorted by data-id
@@ -169,7 +182,9 @@ impl Provider for LaoyaoxsProvider {
         let sel = Selector::parse("div.main_content dd[data-id], div#txt dd[data-id]").unwrap();
         let p_sel = Selector::parse("p").unwrap();
         for elem in doc.select(&sel) {
-            let order_idx: i64 = elem.value().attr("data-id")
+            let order_idx: i64 = elem
+                .value()
+                .attr("data-id")
                 .and_then(|s| s.trim().parse().ok())
                 .unwrap_or(-1);
             if order_idx < 0 {
@@ -193,7 +208,11 @@ impl Provider for LaoyaoxsProvider {
 
         fragments.sort_by_key(|(idx, _)| *idx);
         let content = clean_content(
-            &fragments.iter().map(|(_, t)| t.as_str()).collect::<Vec<_>>().join("\n"),
+            &fragments
+                .iter()
+                .map(|(_, t)| t.as_str())
+                .collect::<Vec<_>>()
+                .join("\n"),
         );
 
         Ok(Chapter {

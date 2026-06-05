@@ -4,9 +4,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::{select_attr_in, select_text_in};
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::{select_text_in, select_attr_in};
 
 pub struct YoduProvider;
 
@@ -235,10 +235,8 @@ impl Provider for YoduProvider {
             let mut current_html = html.clone();
             let mut page = 2;
             while re.is_match(&current_html) {
-                let next_url = format!(
-                    "{}/book/{}/{}_{}.html",
-                    BASE_URL, book_id, chapter_id, page
-                );
+                let next_url =
+                    format!("{}/book/{}/{}_{}.html", BASE_URL, book_id, chapter_id, page);
                 match client.get(&next_url).await {
                     Ok(next_html) => {
                         let next_doc = Html::parse_document(&next_html);

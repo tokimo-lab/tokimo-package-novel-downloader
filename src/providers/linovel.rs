@@ -4,9 +4,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::select_text_in;
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::select_text_in;
 
 pub struct LinovelProvider;
 
@@ -40,11 +40,7 @@ impl Provider for LinovelProvider {
         keyword: &str,
         limit: usize,
     ) -> Result<Vec<SearchResult>> {
-        let url = format!(
-            "{}/search/?kw={}",
-            BASE_URL,
-            urlencoding::encode(keyword)
-        );
+        let url = format!("{}/search/?kw={}", BASE_URL, urlencoding::encode(keyword));
         let html = client.get(&url).await?;
         let doc = Html::parse_document(&html);
         let mut results = Vec::new();
@@ -114,8 +110,7 @@ impl Provider for LinovelProvider {
             }
         }
 
-        info.author =
-            select_text(&doc, "div.sidebar div.novelist div.name a");
+        info.author = select_text(&doc, "div.sidebar div.novelist div.name a");
 
         info.update_time = select_text(&doc, "div.book-last-update")
             .replace("更新于", "")
@@ -123,13 +118,11 @@ impl Provider for LinovelProvider {
             .trim()
             .to_string();
 
-        info.summary = select_text(&doc, "div.section.introduction div.about-text")
-            .replace('\u{00a0}', " ");
+        info.summary =
+            select_text(&doc, "div.section.introduction div.about-text").replace('\u{00a0}', " ");
 
         // Volumes & Chapters
-        if let Ok(sec_sel) =
-            Selector::parse("div.section-list div.section[data-index-name]")
-        {
+        if let Ok(sec_sel) = Selector::parse("div.section-list div.section[data-index-name]") {
             for sec in doc.select(&sec_sel) {
                 let volume_name = select_text_in(&sec, "h2.volume-title");
 

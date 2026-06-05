@@ -64,10 +64,13 @@ impl Provider for Ixdzs8Provider {
         let ltime_sel = Selector::parse("p.l-last span.l-time").unwrap();
 
         for elem in doc.select(&sel).take(limit) {
-            let book_path = elem.value().attr("data-url")
+            let book_path = elem
+                .value()
+                .attr("data-url")
                 .filter(|s| !s.is_empty())
                 .or_else(|| {
-                    elem.select(&bname_sel).next()
+                    elem.select(&bname_sel)
+                        .next()
                         .and_then(|e| e.value().attr("href"))
                 })
                 .unwrap_or("");
@@ -75,23 +78,41 @@ impl Provider for Ixdzs8Provider {
                 continue;
             }
 
-            let book_id = book_path.trim_end_matches('/').rsplit('/').next()
-                .unwrap_or("").to_string();
+            let book_id = book_path
+                .trim_end_matches('/')
+                .rsplit('/')
+                .next()
+                .unwrap_or("")
+                .to_string();
 
-            let title = elem.select(&bname_sel).next()
+            let title = elem
+                .select(&bname_sel)
+                .next()
                 .map(|e| e.value().attr("title").unwrap_or("").to_string())
                 .filter(|s| !s.is_empty())
                 .or_else(|| elem.select(&bname_sel).next().map(|e| element_text(&e)))
                 .unwrap_or_default();
 
-            let author = elem.select(&bauthor_sel).next()
-                .map(|e| element_text(&e)).unwrap_or_default();
-            let word_count = elem.select(&size_sel).next()
-                .map(|e| element_text(&e)).unwrap_or_default();
-            let latest_chapter = elem.select(&lchapter_sel).next()
-                .map(|e| element_text(&e)).unwrap_or_default();
-            let update_date = elem.select(&ltime_sel).next()
-                .map(|e| element_text(&e)).unwrap_or_default();
+            let author = elem
+                .select(&bauthor_sel)
+                .next()
+                .map(|e| element_text(&e))
+                .unwrap_or_default();
+            let word_count = elem
+                .select(&size_sel)
+                .next()
+                .map(|e| element_text(&e))
+                .unwrap_or_default();
+            let latest_chapter = elem
+                .select(&lchapter_sel)
+                .next()
+                .map(|e| element_text(&e))
+                .unwrap_or_default();
+            let update_date = elem
+                .select(&ltime_sel)
+                .next()
+                .map(|e| element_text(&e))
+                .unwrap_or_default();
 
             results.push(SearchResult {
                 site: self.name().to_string(),
@@ -128,8 +149,13 @@ impl Provider for Ixdzs8Provider {
 
             let iso_time = meta_content(&doc, "og:novel:update_time");
             if !iso_time.is_empty() {
-                info.update_time = iso_time.replace('T', " ").split('+').next()
-                    .unwrap_or("").trim().to_string();
+                info.update_time = iso_time
+                    .replace('T', " ")
+                    .split('+')
+                    .next()
+                    .unwrap_or("")
+                    .trim()
+                    .to_string();
             }
 
             info.word_count = select_text(&doc, "div.n-text span.nsize");
@@ -137,24 +163,37 @@ impl Provider for Ixdzs8Provider {
             let raw_summary = meta_content(&doc, "og:description");
             if !raw_summary.is_empty() {
                 let s = raw_summary.replace("&nbsp;", "").replace("<br />", "\n");
-                info.summary = s.lines().map(|l| l.trim()).collect::<Vec<_>>().join("\n").trim().to_string();
+                info.summary = s
+                    .lines()
+                    .map(|l| l.trim())
+                    .collect::<Vec<_>>()
+                    .join("\n")
+                    .trim()
+                    .to_string();
             }
         }
 
         // Fetch catalog via POST
-        let catalog_resp = client.post_form(Self::CATALOG_URL, &[("bid", book_id)]).await?;
+        let catalog_resp = client
+            .post_form(Self::CATALOG_URL, &[("bid", book_id)])
+            .await?;
         if let Ok(data) = serde_json::from_str::<serde_json::Value>(&catalog_resp) {
             let mut chapters = Vec::new();
             if let Some(clist) = data.get("data").and_then(|d| d.as_array()) {
                 for chap in clist {
-                    let ordernum = chap.get("ordernum")
-                        .and_then(|v| v.as_u64().map(|n| n.to_string())
-                            .or_else(|| v.as_str().map(|s| s.to_string())))
+                    let ordernum = chap
+                        .get("ordernum")
+                        .and_then(|v| {
+                            v.as_u64()
+                                .map(|n| n.to_string())
+                                .or_else(|| v.as_str().map(|s| s.to_string()))
+                        })
                         .unwrap_or_default();
                     if ordernum.is_empty() {
                         continue;
                     }
-                    let title = chap.get("title")
+                    let title = chap
+                        .get("title")
                         .and_then(|v| v.as_str())
                         .unwrap_or("未命名章节")
                         .trim()
@@ -206,8 +245,11 @@ impl Provider for Ixdzs8Provider {
 
         // Remove title from first paragraph
         if !paragraphs.is_empty() {
-            let first = paragraphs[0].replace(&title, "")
-                .replace(&title.replace(' ', ""), "").trim().to_string();
+            let first = paragraphs[0]
+                .replace(&title, "")
+                .replace(&title.replace(' ', ""), "")
+                .trim()
+                .to_string();
             if first.is_empty() {
                 paragraphs.remove(0);
             } else {

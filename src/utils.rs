@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
-use regex::Regex;
 use once_cell::sync::Lazy;
+use regex::Regex;
 
 static HTML_TAG_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"<[^>]+>").unwrap());
 static WHITESPACE_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"[\s\u{00a0}\u{3000}]+").unwrap());
@@ -33,9 +33,7 @@ pub fn clean_content(text: &str) -> String {
     }
 
     // Normalize whitespace characters
-    result = result
-        .replace('\u{00a0}', " ")
-        .replace('\u{3000}', "  ");
+    result = result.replace('\u{00a0}', " ").replace('\u{3000}', "  ");
 
     // Clean up excessive blank lines
     let lines: Vec<&str> = result.lines().collect();
@@ -95,7 +93,12 @@ pub fn normalize_url(base: &str, url: &str) -> String {
 
 /// Extract text from a scraper Element, joining all text nodes
 pub fn element_text(element: &scraper::ElementRef) -> String {
-    element.text().collect::<Vec<_>>().join("").trim().to_string()
+    element
+        .text()
+        .collect::<Vec<_>>()
+        .join("")
+        .trim()
+        .to_string()
 }
 
 /// Extract text from first matching selector

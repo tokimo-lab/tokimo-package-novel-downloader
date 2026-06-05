@@ -51,11 +51,23 @@ impl Provider for KunnuProvider {
             for elem in doc.select(&sel) {
                 let text = element_text(&elem);
                 if text.contains("作者") {
-                    info.author = text.replace("作者：", "").replace("作者:", "").trim().to_string();
+                    info.author = text
+                        .replace("作者：", "")
+                        .replace("作者:", "")
+                        .trim()
+                        .to_string();
                 } else if text.contains("状态") {
-                    info.serial_status = text.replace("状态：", "").replace("状态:", "").trim().to_string();
+                    info.serial_status = text
+                        .replace("状态：", "")
+                        .replace("状态:", "")
+                        .trim()
+                        .to_string();
                 } else if text.contains("最近更新") {
-                    info.update_time = text.replace("最近更新：", "").replace("最近更新:", "").trim().to_string();
+                    info.update_time = text
+                        .replace("最近更新：", "")
+                        .replace("最近更新:", "")
+                        .trim()
+                        .to_string();
                 }
             }
         }
@@ -136,12 +148,7 @@ impl Provider for KunnuProvider {
         book_id: &str,
         chapter_id: &str,
     ) -> Result<Chapter> {
-        let url = format!(
-            "{}/{}/{}.htm",
-            self.base_url(),
-            book_id,
-            chapter_id
-        );
+        let url = format!("{}/{}/{}.htm", self.base_url(), book_id, chapter_id);
         let html_str = client.get(&url).await?;
         let doc = Html::parse_document(&html_str);
 
@@ -174,8 +181,13 @@ impl Provider for KunnuProvider {
 
 fn is_ad_line(text: &str) -> bool {
     let ad_keywords = [
-        "鲲弩小说", "kunnu.com", "最新章节", "请记住",
-        "本站域名", "请收藏", "加入书架",
+        "鲲弩小说",
+        "kunnu.com",
+        "最新章节",
+        "请记住",
+        "本站域名",
+        "请收藏",
+        "加入书架",
     ];
     let lower = text.to_lowercase();
     ad_keywords.iter().any(|kw| lower.contains(kw))

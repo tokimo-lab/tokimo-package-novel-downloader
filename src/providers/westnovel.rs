@@ -39,8 +39,7 @@ impl Provider for WestnovelProvider {
         let mut info = BookInfo::default();
 
         info.book_name = select_text(&doc, "div.btitle h1 a");
-        info.author = select_text(&doc, "div.btitle em")
-            .replace("作者：", "");
+        info.author = select_text(&doc, "div.btitle em").replace("作者：", "");
         info.author = info.author.trim().to_string();
 
         let cover_path = select_attr(&doc, "div.bookinfo img.img-img", "src");
@@ -48,8 +47,7 @@ impl Provider for WestnovelProvider {
             info.cover_url = format!("{}{}", self.base_url(), cover_path);
         }
 
-        info.summary = select_text(&doc, "div.intro span.intro-p p")
-            .replace("内容简介：", "");
+        info.summary = select_text(&doc, "div.intro span.intro-p p").replace("内容简介：", "");
 
         // Chapter list
         let mut chapters = Vec::new();
@@ -93,10 +91,7 @@ impl Provider for WestnovelProvider {
         chapter_id: &str,
     ) -> Result<Chapter> {
         let real_id = Self::transform_book_id(book_id);
-        let url = format!(
-            "https://www.westnovel.com/{}/{}.html",
-            real_id, chapter_id
-        );
+        let url = format!("https://www.westnovel.com/{}/{}.html", real_id, chapter_id);
         let html_text = client.get(&url).await?;
         let doc = Html::parse_document(&html_text);
 

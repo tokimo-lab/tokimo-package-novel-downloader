@@ -4,9 +4,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::{select_attr_in, select_text_in};
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::{select_text_in, select_attr_in};
 
 pub struct N37yqProvider;
 
@@ -36,10 +36,10 @@ impl Provider for N37yqProvider {
         limit: usize,
     ) -> Result<Vec<SearchResult>> {
         let html = client
-            .post_form(Self::SEARCH_URL, &[
-                ("searchkey", keyword),
-                ("searchtype", "all"),
-            ])
+            .post_form(
+                Self::SEARCH_URL,
+                &[("searchkey", keyword), ("searchtype", "all")],
+            )
             .await?;
         let doc = Html::parse_document(&html);
         let mut results = Vec::new();
@@ -58,15 +58,22 @@ impl Provider for N37yqProvider {
                 continue;
             }
 
-            let book_id = book_url.rsplit('/').next().unwrap_or("")
-                .split('.').next().unwrap_or("").to_string();
+            let book_id = book_url
+                .rsplit('/')
+                .next()
+                .unwrap_or("")
+                .split('.')
+                .next()
+                .unwrap_or("")
+                .to_string();
 
             let cover_url = select_attr_in(&elem, "div.imgbox img", "src");
             let title = select_text_in(&elem, "h2.tit a");
             let author = select_text_in(&elem, "div.bookinfo a:first-child");
 
             let word_count = select_text_in(&elem, "div.bookinfo span script")
-                .replace("towan('", "").replace("')", "");
+                .replace("towan('", "")
+                .replace("')", "");
 
             results.push(SearchResult {
                 site: self.name().to_string(),
@@ -107,7 +114,8 @@ impl Provider for N37yqProvider {
         info.update_time = meta_content(&info_doc, "og:novel:update_time");
 
         let summary = meta_content(&info_doc, "og:description")
-            .replace('\u{3000}', " ").replace('\u{00a0}', " ");
+            .replace('\u{3000}', " ")
+            .replace('\u{00a0}', " ");
         info.summary = if summary.is_empty() {
             select_text(&info_doc, "div.book-dec p")
         } else {
@@ -147,8 +155,14 @@ impl Provider for N37yqProvider {
                         continue;
                     }
                     let title = a.text().next().unwrap_or("").trim().to_string();
-                    let chapter_id = href.rsplit('/').next().unwrap_or("")
-                        .split('.').next().unwrap_or("").to_string();
+                    let chapter_id = href
+                        .rsplit('/')
+                        .next()
+                        .unwrap_or("")
+                        .split('.')
+                        .next()
+                        .unwrap_or("")
+                        .to_string();
                     current_chapters.push(ChapterInfo {
                         title,
                         chapter_id,
@@ -182,7 +196,12 @@ impl Provider for N37yqProvider {
         book_id: &str,
         chapter_id: &str,
     ) -> Result<Chapter> {
-        let url = format!("{}/lightnovel/{}/{}.html", Self::BASE_URL, book_id, chapter_id);
+        let url = format!(
+            "{}/lightnovel/{}/{}.html",
+            Self::BASE_URL,
+            book_id,
+            chapter_id
+        );
         let html = client.get(&url).await?;
         let doc = Html::parse_document(&html);
 

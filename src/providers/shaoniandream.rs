@@ -31,7 +31,10 @@ impl Provider for ShaoniandreamProvider {
         {
             let doc = Html::parse_document(&html_str);
 
-            info.book_name = select_text(&doc, "div.bookdetail-name span.title, div[class*='bookdetail-name'] span.title");
+            info.book_name = select_text(
+                &doc,
+                "div.bookdetail-name span.title, div[class*='bookdetail-name'] span.title",
+            );
             if info.book_name.is_empty() {
                 info.book_name = select_text(&doc, "h1");
             }
@@ -50,7 +53,10 @@ impl Provider for ShaoniandreamProvider {
             }
             info.cover_url = cover;
 
-            let update_text = select_text(&doc, "div.bookdetial-newchapter span, div[class*='bookdetial-newchapter'] span");
+            let update_text = select_text(
+                &doc,
+                "div.bookdetial-newchapter span, div[class*='bookdetial-newchapter'] span",
+            );
             info.update_time = update_text.replace("● ", "").trim().to_string();
 
             if let Ok(sel) = Selector::parse("div.font-list span") {
@@ -59,8 +65,14 @@ impl Provider for ShaoniandreamProvider {
                 }
             }
 
-            info.serial_status = select_text(&doc, "div.bookdetail-name i, div[class*='bookdetail-name'] i");
-            info.summary = select_text(&doc, "div.bookdetial-jianjie, div[class*='bookdetial-jianjie']");
+            info.serial_status = select_text(
+                &doc,
+                "div.bookdetail-name i, div[class*='bookdetail-name'] i",
+            );
+            info.summary = select_text(
+                &doc,
+                "div.bookdetial-jianjie, div[class*='bookdetial-jianjie']",
+            );
         }
 
         // Fetch chapter directory via signing API
@@ -72,10 +84,7 @@ impl Provider for ShaoniandreamProvider {
         let sign_resp = client.get(&sign_url).await?;
         let sign_json: serde_json::Value = serde_json::from_str(&sign_resp).unwrap_or_default();
 
-        let access_key = sign_json
-            .get("sign")
-            .and_then(|v| v.as_str())
-            .unwrap_or("");
+        let access_key = sign_json.get("sign").and_then(|v| v.as_str()).unwrap_or("");
 
         if !access_key.is_empty() {
             let dir_url = format!(
@@ -109,7 +118,8 @@ impl Provider for ShaoniandreamProvider {
                                 .get("chapter_id")
                                 .or_else(|| ch_item.get("id"))
                                 .and_then(|v| {
-                                    v.as_str().map(|s| s.to_string())
+                                    v.as_str()
+                                        .map(|s| s.to_string())
                                         .or_else(|| v.as_u64().map(|n| n.to_string()))
                                 })
                                 .unwrap_or_default();
@@ -162,10 +172,7 @@ impl Provider for ShaoniandreamProvider {
         let sign_resp = client.get(&sign_url).await?;
         let sign_json: serde_json::Value = serde_json::from_str(&sign_resp).unwrap_or_default();
 
-        let access_key = sign_json
-            .get("sign")
-            .and_then(|v| v.as_str())
-            .unwrap_or("");
+        let access_key = sign_json.get("sign").and_then(|v| v.as_str()).unwrap_or("");
 
         let ch_url = format!(
             "{}/booklibrary/membersinglechapter/chapter_id/{}",
@@ -192,9 +199,7 @@ impl Provider for ShaoniandreamProvider {
                 for item in show_content {
                     if let Some(content_str) = item.get("content").and_then(|v| v.as_str()) {
                         // Content may be plain text or encrypted
-                        let cleaned = content_str
-                            .replace("<i>", "")
-                            .replace("</i>", "");
+                        let cleaned = content_str.replace("<i>", "").replace("</i>", "");
                         let cleaned = strip_html(&cleaned);
                         if !cleaned.trim().is_empty() {
                             paragraphs.push(cleaned.trim().to_string());

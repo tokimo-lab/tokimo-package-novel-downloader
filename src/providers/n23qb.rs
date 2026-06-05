@@ -4,9 +4,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::{select_attr_in, select_text_in};
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::{select_text_in, select_attr_in};
 
 pub struct N23qbProvider;
 
@@ -35,7 +35,11 @@ impl Provider for N23qbProvider {
         keyword: &str,
         limit: usize,
     ) -> Result<Vec<SearchResult>> {
-        let url = format!("{}?searchkey={}", Self::SEARCH_URL, urlencoding::encode(keyword));
+        let url = format!(
+            "{}?searchkey={}",
+            Self::SEARCH_URL,
+            urlencoding::encode(keyword)
+        );
         let html = client.get(&url).await?;
 
         // Check if redirected to a single book detail page
@@ -91,11 +95,12 @@ impl Provider for N23qbProvider {
                     if href == "javascript:cid(0)" || href.is_empty() {
                         continue;
                     }
-                    let title = a.select(&span_sel).next()
+                    let title = a
+                        .select(&span_sel)
+                        .next()
                         .map(|s| element_text(&s))
                         .unwrap_or_default();
-                    let chapter_id = href.rsplit('/').next().unwrap_or("")
-                        .replace(".html", "");
+                    let chapter_id = href.rsplit('/').next().unwrap_or("").replace(".html", "");
                     current_chapters.push(ChapterInfo {
                         title,
                         chapter_id,
@@ -157,8 +162,12 @@ impl N23qbProvider {
             return Ok(vec![]);
         }
 
-        let book_id = book_url.split("book/").last().unwrap_or("")
-            .trim_matches('/').to_string();
+        let book_id = book_url
+            .split("book/")
+            .last()
+            .unwrap_or("")
+            .trim_matches('/')
+            .to_string();
         let title = select_text(&doc, "h1.page-title");
         let author = select_attr(&doc, "a[href*=\"/author/\"]", "title");
 
@@ -184,8 +193,12 @@ impl N23qbProvider {
                 continue;
             }
 
-            let book_id = href.trim_end_matches('/').rsplit('/').next()
-                .unwrap_or("").to_string();
+            let book_id = href
+                .trim_end_matches('/')
+                .rsplit('/')
+                .next()
+                .unwrap_or("")
+                .to_string();
             let title = select_text_in(&elem, "div.novel-info-header h3 a");
 
             results.push(SearchResult {

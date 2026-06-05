@@ -117,12 +117,7 @@ impl Provider for ShencouProvider {
 
         // Fetch catalog page for chapter list
         let prefix = Self::chapter_prefix(book_id);
-        let catalog_url = format!(
-            "{}/read/{}/{}/index.html",
-            self.base_url(),
-            prefix,
-            book_id
-        );
+        let catalog_url = format!("{}/read/{}/{}/index.html", self.base_url(), prefix, book_id);
         let catalog_html = client.get(&catalog_url).await?;
         let catalog_doc = Html::parse_document(&catalog_html);
 

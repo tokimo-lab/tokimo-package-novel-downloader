@@ -4,9 +4,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::select_text_in;
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::select_text_in;
 
 /// 起点中文网 (www.qidian.com) provider.
 ///
@@ -49,15 +49,9 @@ impl Provider for QidianProvider {
         let doc = Html::parse_document(&html_str);
         let mut results = Vec::new();
 
-        if let Ok(sel) = Selector::parse(
-            r#"div#result-list li.res-book-item"#,
-        ) {
+        if let Ok(sel) = Selector::parse(r#"div#result-list li.res-book-item"#) {
             for elem in doc.select(&sel).take(limit) {
-                let book_id = elem
-                    .value()
-                    .attr("data-bid")
-                    .unwrap_or("")
-                    .to_string();
+                let book_id = elem.value().attr("data-bid").unwrap_or("").to_string();
                 if book_id.is_empty() {
                     continue;
                 }
@@ -66,10 +60,7 @@ impl Provider for QidianProvider {
                 let author = select_text_in(&elem, "p.author a.name, p.author i");
                 let latest_chapter = select_text_in(&elem, "p.update a");
                 let update_date = select_text_in(&elem, "p.update span");
-                let word_count = select_text_in(
-                    &elem,
-                    "div.book-right-info div.total p span",
-                );
+                let word_count = select_text_in(&elem, "div.book-right-info div.total p span");
 
                 results.push(SearchResult {
                     site: self.name().to_string(),
@@ -151,16 +142,10 @@ impl Provider for QidianProvider {
                 }
 
                 let mut chapters = Vec::new();
-                if let Ok(ch_sel) =
-                    Selector::parse("ul.volume-chapters li a.chapter-name")
-                {
+                if let Ok(ch_sel) = Selector::parse("ul.volume-chapters li a.chapter-name") {
                     for a_elem in vol_elem.select(&ch_sel) {
                         let title = element_text(&a_elem);
-                        let href = a_elem
-                            .value()
-                            .attr("href")
-                            .unwrap_or("")
-                            .to_string();
+                        let href = a_elem.value().attr("href").unwrap_or("").to_string();
                         let chapter_id = href
                             .trim_end_matches('/')
                             .rsplit('/')
@@ -234,10 +219,7 @@ impl Provider for QidianProvider {
             // Parse paragraphs from <p> tags in the content HTML
             let mut paragraphs = Vec::new();
             for part in raw_html.split("<p>") {
-                let cleaned = part
-                    .replace("</p>", "")
-                    .trim()
-                    .to_string();
+                let cleaned = part.replace("</p>", "").trim().to_string();
                 if !cleaned.is_empty() {
                     let text = strip_html(&cleaned);
                     let unescaped = html_escape_decode(&text);
@@ -253,8 +235,7 @@ impl Provider for QidianProvider {
             title = select_text(&doc, "h1");
 
             let mut raw = String::new();
-            for sel_str in &["#chapter-content", "#content", "article", ".read-content"]
-            {
+            for sel_str in &["#chapter-content", "#content", "article", ".read-content"] {
                 if let Ok(sel) = Selector::parse(sel_str) {
                     if let Some(elem) = doc.select(&sel).next() {
                         raw = elem.inner_html();

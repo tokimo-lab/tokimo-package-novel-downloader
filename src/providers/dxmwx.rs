@@ -4,9 +4,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::{select_attr_in, select_text_in};
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::{select_text_in, select_attr_in};
 
 pub struct DxmwxProvider;
 
@@ -150,10 +150,7 @@ impl Provider for DxmwxProvider {
         book_id: &str,
         chapter_id: &str,
     ) -> Result<Chapter> {
-        let url = format!(
-            "https://www.dxmwx.org/read/{}_{}.html",
-            book_id, chapter_id
-        );
+        let url = format!("https://www.dxmwx.org/read/{}_{}.html", book_id, chapter_id);
         let html_str = client.get(&url).await?;
         let doc = Html::parse_document(&html_str);
 

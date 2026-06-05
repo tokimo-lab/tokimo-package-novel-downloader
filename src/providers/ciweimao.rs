@@ -4,9 +4,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::select_text_in;
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::select_text_in;
 
 /// 刺猬猫 (www.ciweimao.com) provider.
 ///
@@ -72,13 +72,8 @@ impl Provider for CiweimaoProvider {
         }; // info_doc dropped here
 
         // Fetch chapter list via AJAX POST
-        let chapter_list_url =
-            format!("{}/chapter/get_chapter_list_in_chapter_detail", BASE);
-        let form_data = [
-            ("book_id", book_id),
-            ("chapter_id", "0"),
-            ("orderby", "0"),
-        ];
+        let chapter_list_url = format!("{}/chapter/get_chapter_list_in_chapter_detail", BASE);
+        let form_data = [("book_id", book_id), ("chapter_id", "0"), ("orderby", "0")];
 
         let catalog_html = client
             .post_form(&chapter_list_url, &form_data)
@@ -94,15 +89,9 @@ impl Provider for CiweimaoProvider {
                     let vol_name = select_text_in(&vol_elem, "h4.sub-tit");
 
                     let mut chapters = Vec::new();
-                    if let Ok(a_sel) =
-                        Selector::parse("ul.book-chapter-list a[href]")
-                    {
+                    if let Ok(a_sel) = Selector::parse("ul.book-chapter-list a[href]") {
                         for a_elem in vol_elem.select(&a_sel) {
-                            let href = a_elem
-                                .value()
-                                .attr("href")
-                                .unwrap_or("")
-                                .to_string();
+                            let href = a_elem.value().attr("href").unwrap_or("").to_string();
                             if href.is_empty() {
                                 continue;
                             }

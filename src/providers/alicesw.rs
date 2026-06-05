@@ -4,9 +4,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::{select_attr_in, select_text_in};
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::{select_text_in, select_attr_in};
 
 pub struct AliceswProvider;
 
@@ -34,7 +34,11 @@ impl Provider for AliceswProvider {
         keyword: &str,
         limit: usize,
     ) -> Result<Vec<SearchResult>> {
-        let url = format!("{}?q={}&f=_all", "https://www.alicesw.com/search.html", urlencoding::encode(keyword));
+        let url = format!(
+            "{}?q={}&f=_all",
+            "https://www.alicesw.com/search.html",
+            urlencoding::encode(keyword)
+        );
         let html_str = client.get(&url).await?;
         let doc = Html::parse_document(&html_str);
         let mut results = Vec::new();
@@ -85,7 +89,10 @@ impl Provider for AliceswProvider {
         let book_id_path = book_id.replace('-', "/");
 
         let info_url = format!("https://www.alicesw.com/novel/{}.html", book_id_path);
-        let catalog_url = format!("https://www.alicesw.com/other/chapters/id/{}.html", book_id_path);
+        let catalog_url = format!(
+            "https://www.alicesw.com/other/chapters/id/{}.html",
+            book_id_path
+        );
 
         let info_html = client.get(&info_url).await?;
         let catalog_html = client.get(&catalog_url).await?;

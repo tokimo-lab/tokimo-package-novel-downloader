@@ -4,9 +4,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::{select_attr_in, select_text_in};
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::{select_text_in, select_attr_in};
 
 pub struct TtkanProvider;
 
@@ -20,13 +20,17 @@ fn is_ttkan_ad(line: &str) -> bool {
         &['W', 'w', 'ω', 'ш', 'щ'],
         &['W', 'w', 'ω', 'ш', 'щ'],
         &['W', 'w', 'ω', 'ш', 'щ'],
-        &['.', '¤', '¸', '•', '⊕', '⊙', '▪', '▲', '◆', '●', '★', '☢', '✿', '＿'],
+        &[
+            '.', '¤', '¸', '•', '⊕', '⊙', '▪', '▲', '◆', '●', '★', '☢', '✿', '＿',
+        ],
         &['T', 't', 'т', 'ⓣ'],
         &['T', 't', 'т', 'ⓣ'],
         &['K', 'k', 'κ', 'К', 'к', 'ⓚ'],
         &['a', 'á', 'ā', 'ǎ', 'Λ', 'д', 'ⓐ'],
         &['N', 'n', 'ⓝ'],
-        &['.', '¤', '¸', '•', '⊕', '⊙', '▪', '▲', '◆', '●', '★', '☢', '✿', '＿'],
+        &[
+            '.', '¤', '¸', '•', '⊕', '⊙', '▪', '▲', '◆', '●', '★', '☢', '✿', '＿',
+        ],
         &['C', 'c', 'С', '℃', '￠'],
         &['O', 'o', 'Ο', '○', '〇'],
     ];
@@ -99,8 +103,7 @@ impl Provider for TtkanProvider {
                         .unwrap_or("")
                         .to_string();
                     let title = select_text_in(&elem, "h3");
-                    let author = select_text_in(&elem, "li")
-                        .replace("作者：", "");
+                    let author = select_text_in(&elem, "li").replace("作者：", "");
 
                     results.push(SearchResult {
                         site: self.name().to_string(),

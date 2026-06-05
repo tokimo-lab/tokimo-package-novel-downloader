@@ -84,11 +84,7 @@ impl Provider for LvsewxProvider {
 
         // Summary
         info.summary = select_text(&doc, "div.intro");
-        info.summary = info
-            .summary
-            .replace("简介：", "")
-            .trim()
-            .to_string();
+        info.summary = info.summary.replace("简介：", "").trim().to_string();
         if let Some(pos) = info.summary.find("作者：") {
             info.summary = info.summary[..pos].trim().to_string();
         }

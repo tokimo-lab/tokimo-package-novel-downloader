@@ -2,8 +2,8 @@ use anyhow::Result;
 use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
+use crate::providers::biquge_common::{select_attr_in, select_text_in};
 use crate::types::SearchResult;
-use crate::providers::biquge_common::{select_text_in, select_attr_in};
 
 /// Shared ManggNet-style search implementation
 /// Used by: biquge5, biquguo, bxwx9, ciluke, fsshu, ktshu, n37yue, mangg_net
@@ -15,9 +15,7 @@ pub async fn mangg_search(
     keyword: &str,
     limit: usize,
 ) -> Result<Vec<SearchResult>> {
-    let html = client
-        .post_form(search_url, &[("q", keyword)])
-        .await?;
+    let html = client.post_form(search_url, &[("q", keyword)]).await?;
     let doc = Html::parse_document(&html);
     let mut results = Vec::new();
 
@@ -42,8 +40,13 @@ pub async fn mangg_search(
             for elem in items.into_iter().take(limit) {
                 // Try to extract title and link
                 let title = select_text_in(&elem, "dt a, h3 a, a.s2, .s2 a, a:first-of-type");
-                let href = select_attr_in(&elem, "dt a[href], h3 a[href], a.s2[href], .s2 a[href], a[href]:first-of-type", "href");
-                let author = select_text_in(&elem, "dd span:nth-of-type(1), .s4, span.author, .author");
+                let href = select_attr_in(
+                    &elem,
+                    "dt a[href], h3 a[href], a.s2[href], .s2 a[href], a[href]:first-of-type",
+                    "href",
+                );
+                let author =
+                    select_text_in(&elem, "dd span:nth-of-type(1), .s4, span.author, .author");
                 let latest = select_text_in(&elem, "dd span:nth-of-type(2), .s3, span.update");
                 let update_date = select_text_in(&elem, "dd span:nth-of-type(3), .s5, span.date");
 

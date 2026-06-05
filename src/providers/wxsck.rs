@@ -13,7 +13,10 @@ pub struct WxsckProvider;
 impl WxsckProvider {
     fn chapter_url(book_id: &str, chapter_id: &str, page: usize) -> String {
         if page > 1 {
-            format!("https://wxsck.com/book/{}/{}_{}.html", book_id, chapter_id, page)
+            format!(
+                "https://wxsck.com/book/{}/{}_{}.html",
+                book_id, chapter_id, page
+            )
         } else {
             format!("https://wxsck.com/book/{}/{}.html", book_id, chapter_id)
         }

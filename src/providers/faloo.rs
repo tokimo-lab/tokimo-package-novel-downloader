@@ -78,7 +78,9 @@ impl Provider for FalooProvider {
             if let Ok(vol_sel) = Selector::parse(vol_sel_str) {
                 for vol_elem in doc.select(&vol_sel) {
                     let mut chapters = Vec::new();
-                    if let Ok(a_sel) = Selector::parse("div.DivTable a[href], div[class*='DivTable'] a[href], a[href]") {
+                    if let Ok(a_sel) = Selector::parse(
+                        "div.DivTable a[href], div[class*='DivTable'] a[href], a[href]",
+                    ) {
                         for a_elem in vol_elem.select(&a_sel) {
                             if let Some(href) = a_elem.value().attr("href") {
                                 let title = element_text(&a_elem);
@@ -170,12 +172,7 @@ impl Provider for FalooProvider {
         book_id: &str,
         chapter_id: &str,
     ) -> Result<Chapter> {
-        let url = format!(
-            "{}/{}_{}.html",
-            self.base_url(),
-            book_id,
-            chapter_id
-        );
+        let url = format!("{}/{}_{}.html", self.base_url(), book_id, chapter_id);
         let html_str = client.get(&url).await?;
         let doc = Html::parse_document(&html_str);
 

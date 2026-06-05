@@ -7,8 +7,8 @@ pub mod providers;
 pub mod types;
 pub mod utils;
 
-pub use types::{BookInfo, Chapter, ChapterInfo, DownloadEvent, SearchResult, Volume};
 pub use download::stream_download;
+pub use types::{BookInfo, Chapter, ChapterInfo, DownloadEvent, SearchResult, Volume};
 
 use futures::Stream;
 use serde::Serialize;
@@ -53,7 +53,9 @@ pub fn list_providers() -> Vec<ProviderMeta> {
 /// }
 /// # });
 /// ```
-pub fn search_stream(query: impl Into<String>) -> impl Stream<Item = SearchResult> + Send + 'static {
+pub fn search_stream(
+    query: impl Into<String>,
+) -> impl Stream<Item = SearchResult> + Send + 'static {
     let query = query.into();
     let (tx, rx) = tokio::sync::mpsc::channel::<SearchResult>(256);
 
@@ -136,13 +138,18 @@ pub fn download_stream(
     tokio::spawn(async move {
         let client = match client::HttpClient::new() {
             Ok(c) => c,
-            Err(e) => { let _ = tx.send(Err(e)).await; return; }
+            Err(e) => {
+                let _ = tx.send(Err(e)).await;
+                return;
+            }
         };
         let all_providers = providers::get_all_providers();
         let provider = match all_providers.into_iter().find(|p| p.name() == provider_id) {
             Some(p) => p,
             None => {
-                let _ = tx.send(Err(anyhow::anyhow!("Provider '{}' not found", provider_id))).await;
+                let _ = tx
+                    .send(Err(anyhow::anyhow!("Provider '{}' not found", provider_id)))
+                    .await;
                 return;
             }
         };

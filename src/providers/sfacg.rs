@@ -88,10 +88,7 @@ impl Provider for SfacgProvider {
         }
 
         // Summary
-        info.summary = select_text(
-            &info_doc,
-            "ul.book_profile li.book_bk_qs1",
-        );
+        info.summary = select_text(&info_doc, "ul.book_profile li.book_bk_qs1");
 
         // Parse catalog: div.mulu + following ul.mulu_list
         if let Ok(vol_sel) = Selector::parse("div.mulu") {
@@ -105,11 +102,7 @@ impl Provider for SfacgProvider {
                 // Since scraper doesn't have next_sibling easily, parse from full doc
                 if let Ok(a_sel) = Selector::parse("ul.mulu_list a[href]") {
                     for a_elem in catalog_doc.select(&a_sel) {
-                        let href = a_elem
-                            .value()
-                            .attr("href")
-                            .unwrap_or("")
-                            .to_string();
+                        let href = a_elem.value().attr("href").unwrap_or("").to_string();
                         if href.is_empty() {
                             continue;
                         }
@@ -148,11 +141,7 @@ impl Provider for SfacgProvider {
             let mut chapters = Vec::new();
             if let Ok(a_sel) = Selector::parse("ul.mulu_list a[href]") {
                 for a_elem in catalog_doc.select(&a_sel) {
-                    let href = a_elem
-                        .value()
-                        .attr("href")
-                        .unwrap_or("")
-                        .to_string();
+                    let href = a_elem.value().attr("href").unwrap_or("").to_string();
                     let chapter_id = href
                         .trim_end_matches('/')
                         .rsplit('/')
@@ -193,10 +182,7 @@ impl Provider for SfacgProvider {
 
         // Detect VIP image-based chapters
         if html_str.contains("/ajax/ashx/common.ashx") {
-            let title = select_text(
-                &doc,
-                r#"ul.menu_top_list.book_view_top li:nth-child(2)"#,
-            );
+            let title = select_text(&doc, r#"ul.menu_top_list.book_view_top li:nth-child(2)"#);
             return Ok(Chapter {
                 id: chapter_id.to_string(),
                 title,
@@ -206,10 +192,7 @@ impl Provider for SfacgProvider {
 
         // Check for locked VIP chapters
         if html_str.contains("本章为VIP章节") {
-            let title = select_text(
-                &doc,
-                r#"ul.menu_top_list.book_view_top li:nth-child(2)"#,
-            );
+            let title = select_text(&doc, r#"ul.menu_top_list.book_view_top li:nth-child(2)"#);
             return Ok(Chapter {
                 id: chapter_id.to_string(),
                 title,
@@ -218,10 +201,7 @@ impl Provider for SfacgProvider {
         }
 
         // Title from top menu
-        let title = select_text(
-            &doc,
-            r#"ul.menu_top_list.book_view_top li:nth-child(2)"#,
-        );
+        let title = select_text(&doc, r#"ul.menu_top_list.book_view_top li:nth-child(2)"#);
 
         // Content from div.yuedu.Content_Frame > div
         let mut paragraphs = Vec::new();

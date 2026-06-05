@@ -4,9 +4,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::{select_attr_in, select_text_in};
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::{select_text_in, select_attr_in};
 
 pub struct Quanben5Provider;
 
@@ -75,7 +75,10 @@ impl Provider for Quanben5Provider {
 
         let url = format!(
             "{}?c=book&a=search.json&callback=search&t={}&keywords={}&b={}",
-            Self::SEARCH_URL, t, uri_keyword, b
+            Self::SEARCH_URL,
+            t,
+            uri_keyword,
+            b
         );
 
         let resp = client.get(&url).await?;
@@ -103,8 +106,12 @@ impl Provider for Quanben5Provider {
                 continue;
             }
 
-            let book_id = href.trim_end_matches('/').rsplit('/').next()
-                .unwrap_or("").to_string();
+            let book_id = href
+                .trim_end_matches('/')
+                .rsplit('/')
+                .next()
+                .unwrap_or("")
+                .to_string();
 
             let title = select_text_in(&elem, "h3 a span.name");
             let author = select_text_in(&elem, "p.info span.author");
@@ -144,14 +151,20 @@ impl Provider for Quanben5Provider {
         for elem in doc.select(&li_sel) {
             if let Some(a) = elem.select(&a_sel).next() {
                 let href = a.value().attr("href").unwrap_or("");
-                let title = a.select(&span_sel).next()
+                let title = a
+                    .select(&span_sel)
+                    .next()
                     .map(|s| element_text(&s))
                     .unwrap_or_default();
                 if title.is_empty() || href.is_empty() {
                     continue;
                 }
-                let chapter_id = href.trim_end_matches(".html")
-                    .rsplit('/').next().unwrap_or("").to_string();
+                let chapter_id = href
+                    .trim_end_matches(".html")
+                    .rsplit('/')
+                    .next()
+                    .unwrap_or("")
+                    .to_string();
                 chapters.push(ChapterInfo {
                     title,
                     chapter_id,

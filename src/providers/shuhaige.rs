@@ -4,9 +4,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::{select_attr_in, select_text_in};
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::{select_text_in, select_attr_in};
 
 pub struct ShuhaigeProvider;
 
@@ -16,11 +16,7 @@ impl ShuhaigeProvider {
 }
 
 fn is_ad_line(text: &str) -> bool {
-    let patterns = [
-        "www.shuhaige.net",
-        "书海阁小说网",
-        "点击下一页",
-    ];
+    let patterns = ["www.shuhaige.net", "书海阁小说网", "点击下一页"];
     patterns.iter().any(|p| text.contains(p))
 }
 
@@ -45,10 +41,10 @@ impl Provider for ShuhaigeProvider {
         limit: usize,
     ) -> Result<Vec<SearchResult>> {
         let html = client
-            .post_form(Self::SEARCH_URL, &[
-                ("searchtype", "all"),
-                ("searchkey", keyword),
-            ])
+            .post_form(
+                Self::SEARCH_URL,
+                &[("searchtype", "all"), ("searchkey", keyword)],
+            )
             .await?;
         let doc = Html::parse_document(&html);
         let mut results = Vec::new();
@@ -67,8 +63,12 @@ impl Provider for ShuhaigeProvider {
                 continue;
             }
 
-            let book_id = href.trim_matches('/').split('/').next()
-                .unwrap_or("").to_string();
+            let book_id = href
+                .trim_matches('/')
+                .split('/')
+                .next()
+                .unwrap_or("")
+                .to_string();
 
             let title = {
                 let t = select_text_in(&elem, "dd h3 a");
@@ -116,7 +116,9 @@ impl Provider for ShuhaigeProvider {
         info.author = select_text(&doc, "div#info p:first-of-type a");
         info.cover_url = select_attr(&doc, "div#fmimg img", "src");
         info.update_time = select_text(&doc, "div#info p:nth-of-type(3)")
-            .replace("最后更新：", "").trim().to_string();
+            .replace("最后更新：", "")
+            .trim()
+            .to_string();
         info.summary = select_text(&doc, "div#intro p:first-of-type");
 
         // Parse chapters: after dt containing "正文"
@@ -142,8 +144,14 @@ impl Provider for ShuhaigeProvider {
                     if title.is_empty() || href.is_empty() {
                         continue;
                     }
-                    let chapter_id = href.rsplit('/').next().unwrap_or("")
-                        .split('.').next().unwrap_or("").to_string();
+                    let chapter_id = href
+                        .rsplit('/')
+                        .next()
+                        .unwrap_or("")
+                        .split('.')
+                        .next()
+                        .unwrap_or("")
+                        .to_string();
                     chapters.push(ChapterInfo {
                         title,
                         chapter_id,
@@ -162,8 +170,14 @@ impl Provider for ShuhaigeProvider {
                 if title.is_empty() || href.is_empty() {
                     continue;
                 }
-                let chapter_id = href.rsplit('/').next().unwrap_or("")
-                    .split('.').next().unwrap_or("").to_string();
+                let chapter_id = href
+                    .rsplit('/')
+                    .next()
+                    .unwrap_or("")
+                    .split('.')
+                    .next()
+                    .unwrap_or("")
+                    .to_string();
                 chapters.push(ChapterInfo {
                     title,
                     chapter_id,
@@ -196,7 +210,13 @@ impl Provider for ShuhaigeProvider {
             let url = if page == 1 {
                 format!("{}/{}/{}.html", Self::BASE_URL, book_id, chapter_id)
             } else {
-                format!("{}/{}/{}_{}.html", Self::BASE_URL, book_id, chapter_id, page)
+                format!(
+                    "{}/{}/{}_{}.html",
+                    Self::BASE_URL,
+                    book_id,
+                    chapter_id,
+                    page
+                )
             };
 
             let html = client.get(&url).await?;

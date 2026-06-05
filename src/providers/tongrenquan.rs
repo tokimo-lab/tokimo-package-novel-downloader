@@ -4,9 +4,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::{select_attr_in, select_text_in};
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::{select_text_in, select_attr_in};
 
 pub struct TongrenquanProvider;
 
@@ -41,11 +41,7 @@ impl Provider for TongrenquanProvider {
         let html = client
             .post_form(
                 "https://www.tongrenquan.org/e/search/indexstart.php",
-                &[
-                    ("keyboard", keyword),
-                    ("show", "title"),
-                    ("classid", "0"),
-                ],
+                &[("keyboard", keyword), ("show", "title"), ("classid", "0")],
             )
             .await?;
         let doc = Html::parse_document(&html);
@@ -66,8 +62,8 @@ impl Provider for TongrenquanProvider {
                     .unwrap_or("")
                     .to_string();
                 let title = select_text_in(&elem, "div.bk_right h3 a");
-                let author = select_text_in(&elem, "div.bk_right div.booknews")
-                    .replace("作者：", "");
+                let author =
+                    select_text_in(&elem, "div.bk_right div.booknews").replace("作者：", "");
                 let update_date = select_text_in(&elem, "div.bk_right div.booknews label.date");
 
                 results.push(SearchResult {

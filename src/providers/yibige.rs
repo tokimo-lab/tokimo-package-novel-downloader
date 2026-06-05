@@ -54,8 +54,7 @@ impl Provider for YibigeProvider {
             info.cover_url = select_attr(&info_doc, "#fmimg img", "src");
         }
 
-        info.update_time = meta_content(&info_doc, "og:novel:update_time")
-            .replace('T', " ");
+        info.update_time = meta_content(&info_doc, "og:novel:update_time").replace('T', " ");
         info.serial_status = meta_content(&info_doc, "og:novel:status");
         if info.serial_status.is_empty() {
             info.serial_status = "连载中".to_string();
@@ -118,10 +117,7 @@ impl Provider for YibigeProvider {
         book_id: &str,
         chapter_id: &str,
     ) -> Result<Chapter> {
-        let url = format!(
-            "https://{}/{}/{}.html",
-            BASE_HOST, book_id, chapter_id
-        );
+        let url = format!("https://{}/{}/{}.html", BASE_HOST, book_id, chapter_id);
         let html_text = client.get(&url).await?;
         let doc = Html::parse_document(&html_text);
 
@@ -131,9 +127,7 @@ impl Provider for YibigeProvider {
         if let Ok(sel) = Selector::parse("#content p") {
             for p in doc.select(&sel) {
                 let text = element_text(&p);
-                let normalized = text
-                    .replace('\u{00a0}', " ")
-                    .replace('\u{3000}', "  ");
+                let normalized = text.replace('\u{00a0}', " ").replace('\u{3000}', "  ");
                 let trimmed = normalized.trim().to_string();
                 if !trimmed.is_empty() {
                     paragraphs.push(trimmed);

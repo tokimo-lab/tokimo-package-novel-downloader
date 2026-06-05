@@ -5,9 +5,9 @@ use scraper::{Html, Selector};
 
 use crate::client::HttpClient;
 use crate::provider::Provider;
+use crate::providers::biquge_common::{select_attr_in, select_text_in};
 use crate::types::*;
 use crate::utils::*;
-use crate::providers::biquge_common::{select_text_in, select_attr_in};
 
 pub struct QbtrProvider;
 
@@ -37,11 +37,10 @@ impl Provider for QbtrProvider {
         limit: usize,
     ) -> Result<Vec<SearchResult>> {
         let html = client
-            .post_form(Self::SEARCH_URL, &[
-                ("keyboard", keyword),
-                ("show", "title"),
-                ("classid", "0"),
-            ])
+            .post_form(
+                Self::SEARCH_URL,
+                &[("keyboard", keyword), ("show", "title"), ("classid", "0")],
+            )
             .await?;
         let doc = Html::parse_document(&html);
         let mut results = Vec::new();
@@ -54,13 +53,18 @@ impl Provider for QbtrProvider {
             }
 
             // '/tongren/8850.html' -> "tongren-8850"
-            let book_id = href.trim_matches('/')
-                .split('.').next().unwrap_or("")
+            let book_id = href
+                .trim_matches('/')
+                .split('.')
+                .next()
+                .unwrap_or("")
                 .replace('/', "-");
 
             let title = select_text_in(&elem, "h3 a");
             let author = select_text_in(&elem, "div.booknews")
-                .replace("作者：", "").trim().to_string();
+                .replace("作者：", "")
+                .trim()
+                .to_string();
             let update_date = select_text_in(&elem, "div.booknews label.date");
 
             results.push(SearchResult {
@@ -120,7 +124,8 @@ impl Provider for QbtrProvider {
                 if title.is_empty() {
                     continue;
                 }
-                let chapter_id = chapter_re.as_ref()
+                let chapter_id = chapter_re
+                    .as_ref()
                     .and_then(|re| re.captures(href))
                     .map(|cap| cap[1].to_string())
                     .unwrap_or_default();
@@ -156,7 +161,10 @@ impl Provider for QbtrProvider {
         let raw_title = select_text(&doc, "div.read_chapterName h1");
         let book_name = {
             let sel = Selector::parse("div.readTop a").unwrap();
-            doc.select(&sel).last().map(|e| element_text(&e)).unwrap_or_default()
+            doc.select(&sel)
+                .last()
+                .map(|e| element_text(&e))
+                .unwrap_or_default()
         };
         let title = raw_title.replace(&book_name, "").trim().to_string();
 

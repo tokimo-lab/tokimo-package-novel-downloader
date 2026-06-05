@@ -55,7 +55,9 @@ impl Provider for HongxiuzhaoProvider {
 
         // Chapters from section.yd-chapter ul a
         let mut chapters = Vec::new();
-        if let Ok(sel) = Selector::parse("section.yd-chapter ul a[href], section[class*='yd-chapter'] ul a[href]") {
+        if let Ok(sel) = Selector::parse(
+            "section.yd-chapter ul a[href], section[class*='yd-chapter'] ul a[href]",
+        ) {
             for elem in doc.select(&sel) {
                 if let Some(href) = elem.value().attr("href") {
                     let title = element_text(&elem);
@@ -129,8 +131,14 @@ impl Provider for HongxiuzhaoProvider {
 
 fn is_ad_line(text: &str) -> bool {
     let ad_keywords = [
-        "红袖招", "hongxiuzhao", "本站域名", "请记住",
-        "最新章节", "请收藏", "加入书架", "www.",
+        "红袖招",
+        "hongxiuzhao",
+        "本站域名",
+        "请记住",
+        "最新章节",
+        "请收藏",
+        "加入书架",
+        "www.",
     ];
     let lower = text.to_lowercase();
     ad_keywords.iter().any(|kw| lower.contains(kw))

@@ -34,8 +34,7 @@ impl Provider for ZhenhunxiaoshuoProvider {
         info.book_name = select_text(&doc, "h1.focusbox-title");
 
         // Summary from focusbox-text p.text
-        info.summary = select_text(&doc, "div.focusbox-text p.text")
-            .replace('\u{3000}', " ");
+        info.summary = select_text(&doc, "div.focusbox-text p.text").replace('\u{3000}', " ");
 
         // Chapter list from excerpts article a
         let mut chapters = Vec::new();
@@ -78,10 +77,7 @@ impl Provider for ZhenhunxiaoshuoProvider {
         _book_id: &str,
         chapter_id: &str,
     ) -> Result<Chapter> {
-        let url = format!(
-            "https://www.zhenhunxiaoshuo.com/{}.html",
-            chapter_id
-        );
+        let url = format!("https://www.zhenhunxiaoshuo.com/{}.html", chapter_id);
         let html_text = client.get(&url).await?;
         let doc = Html::parse_document(&html_text);
 
