@@ -175,3 +175,22 @@ pub async fn get_book_info(
         .ok_or_else(|| anyhow::anyhow!("Provider '{}' not found", provider_id.as_ref()))?;
     provider.get_book_info(&client, book_id.as_ref()).await
 }
+
+// ── get_chapter ───────────────────────────────────────────────────────────────
+
+/// Fetch a single chapter's content from a specific provider.
+pub async fn get_chapter(
+    provider_id: impl AsRef<str>,
+    book_id: impl AsRef<str>,
+    chapter_id: impl AsRef<str>,
+) -> anyhow::Result<Chapter> {
+    let client = client::HttpClient::new()?;
+    let all_providers = providers::get_all_providers();
+    let provider = all_providers
+        .iter()
+        .find(|p| p.name() == provider_id.as_ref())
+        .ok_or_else(|| anyhow::anyhow!("Provider '{}' not found", provider_id.as_ref()))?;
+    provider
+        .get_chapter_content(&client, book_id.as_ref(), chapter_id.as_ref())
+        .await
+}
