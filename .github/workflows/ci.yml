@@ -45,4 +45,3 @@ jobs:
 
       - name: cargo test
         run: cargo test
-
